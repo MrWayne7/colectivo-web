@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panel</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%2339FF14'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/estilo.css">
+<style>
+main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
+.vista{display:flex;flex-direction:column;gap:1.5rem}
+.h1{font-family:var(--display);font-size:clamp(2.6rem,8vw,5rem);line-height:.9;text-transform:uppercase}
+.h1 small{display:block;font-family:var(--texto);font-size:1rem;color:var(--gris);text-transform:none;margin-top:.5rem}
+.tabs{display:flex;flex-wrap:wrap;gap:.4rem;border-bottom:1px solid var(--linea);padding-bottom:1rem}
+.tabs button{background:none;border:2px solid var(--linea);padding:.5rem .9rem;cursor:pointer;font-weight:500}
+.tabs button.on{border-color:var(--verde);color:var(--verde)}
+.tab{display:none;flex-direction:column;gap:1.5rem}
+.tab.on{display:flex}
+.lista{display:flex;flex-direction:column;border-top:1px solid var(--linea)}
+.item{display:grid;grid-template-columns:1fr auto;gap:.5rem 1rem;align-items:center;padding:.9rem .25rem;border-bottom:1px solid var(--linea)}
+.item__t{font-family:var(--display);font-size:1.3rem;line-height:1;text-transform:uppercase}
+.item__s{color:var(--gris);font-size:.9rem;margin-top:.25rem;overflow-wrap:anywhere}
+.item__acc{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:flex-end}
+.item audio{width:100%;grid-column:1/-1;height:2.2rem;filter:invert(1) hue-rotate(90deg)}
+.foto{display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap}
+.foto__pre{width:8rem;height:8rem;border:2px solid var(--verde);background:var(--musgo) center/cover no-repeat;display:grid;place-items:center;font-family:var(--display);font-size:2.5rem;color:var(--verde)}
+.progreso{height:6px;background:var(--linea);margin-top:.5rem}
+.progreso i{display:block;height:100%;width:0;background:var(--verde);transition:width .2s}
+.badge{font-size:.7rem;font-weight:700;background:var(--verde);color:var(--negro);padding:.1rem .4rem;margin-left:.5rem;vertical-align:middle;font-family:var(--texto)}
+.clave{font-family:ui-monospace,Menlo,monospace;background:var(--musgo);padding:.2rem .5rem;user-select:all}
+.fila{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.msg:empty{display:none}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="bar__id" href="/"><span class="rec off" aria-hidden="true"></span><span data-nombre></span><span class="bar__live" style="color:var(--gris)">PANEL</span></a>
+  <nav class="bar__nav"><a href="/" target="_blank" rel="noopener">Ver sitio</a><a href="#" id="salir" class="oculto">Salir</a></nav>
+</header>
+
+<main>
+  <section class="vista oculto" id="v-cargando"><p style="color:var(--gris)">Cargando…</p></section>
+
+  <section class="vista oculto" id="v-setup">
+    <h1 class="h1">Primer uso<small>No hay integrantes todavía. Crea la cuenta de administrador con la clave de instalación que imprimió setup.sh.</small></h1>
+    <form class="form form--2" id="f-setup">
+      <label class="campo"><span>Tu alias (como aparece en la consola)</span><input name="alias" required maxlength="60"></label>
+      <label class="campo"><span>Usuario para entrar</span><input name="slug" required maxlength="30" placeholder="solo letras, números y guiones"></label>
+      <label class="campo"><span>Contraseña (mínimo 8)</span><input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+      <label class="campo"><span>Clave de instalación (SETUP_KEY)</span><input name="key" required autocomplete="off"></label>
+      <div class="ancho msg" id="m-setup"></div>
+      <div class="ancho"><button class="btn btn--fill" type="submit">Crear administrador</button></div>
+    </form>
+  </section>
+
+  <section class="vista oculto" id="v-login">
+    <h1 class="h1">Entrar<small>Tu canal, tus fechas, tus drops y tu música.</small></h1>
+    <form class="form" id="f-login" style="max-width:26rem">
+      <label class="campo"><span>Usuario</span><input name="user" required autocomplete="username" autocapitalize="none"></label>
+      <label class="campo"><span>Contraseña</span><input name="password" type="password" required autocomplete="current-password"></label>
+      <div class="msg" id="m-login"></div>
+      <div><button class="btn btn--fill" type="submit">Entrar</button></div>
+    </form>
+  </section>
+
+  <section class="vista oculto" id="v-app">
+    <h1 class="h1"><span id="hola"></span><small id="hola-sub"></small></h1>
+    <nav class="tabs" id="tabs">
+      <button data-tab="perfil" class="on">Mi canal</button>
+      <button data-tab="fechas">Fechas</button>
+      <button data-tab="drops">Drops</button>
+      <button data-tab="musica">Música</button>
+      <button data-tab="clave">Contraseña</button>
+      <button data-tab="integrantes" class="solo-admin oculto">Integrantes</button>
+      <button data-tab="solicitudes" class="solo-admin oculto">Solicitudes</button>
+    </nav>
+
+    <div class="tab on" id="t-perfil">
+      <div class="foto">
+        <div class="foto__pre" id="foto-pre"></div>
+        <div class="campo" style="flex:1;min-width:14rem">
+          <span>Foto (JPG, PNG o WEBP, máx. 6 MB)</span>
+          <input type="file" id="foto-file" accept="image/jpeg,image/png,image/webp,image/gif">
+          <div class="fila" style="margin-top:.5rem"><button class="btn btn--peq" id="foto-subir" type="button">Subir foto</button><button class="btn btn--peq btn--gris" id="foto-quitar" type="button">Quitar</button></div>
+          <div class="msg" id="m-foto"></div>
+        </div>
+      </div>
+      <form class="form form--2" id="f-perfil">
+        <label class="campo"><span>Alias</span><input name="alias" required maxlength="60"></label>
+        <label class="campo"><span>Rol</span><input name="role" maxlength="120" placeholder="Productor y beatmaker"></label>
+        <label class="campo"><span>Especialidad</span><input name="specialty" maxlength="160" placeholder="reggaetón, house, mezcla, dirección…"></label>
+        <label class="campo"><span>Ciudad</span><input name="city" maxlength="80"></label>
+        <label class="campo ancho"><span>Bio</span><textarea name="bio" maxlength="2000"></textarea></label>
+        <label class="campo ancho"><span>Tags (separados por coma)</span><input name="tags" placeholder="Ableton, Mezcla, Voz"></label>
+        <label class="campo ancho"><span>Links (uno por línea: Nombre | URL)</span><textarea name="links" placeholder="Instagram | https://instagram.com/tuusuario&#10;Spotify | https://open.spotify.com/artist/…"></textarea></label>
+        <label class="toggle ancho"><input type="checkbox" name="available"><span>Estoy disponible y acepto trabajos</span></label>
+        <label class="campo ancho"><span>Nota de estado (opcional)</span><input name="status_note" maxlength="160" placeholder="Libre para producciones en octubre / En gira hasta diciembre"></label>
+        <div class="ancho msg" id="m-perfil"></div>
+        <div class="ancho"><button class="btn btn--fill" type="submit">Guardar cambios</button></div>
+      </form>
+    </div>
+
+    <div class="tab" id="t-fechas">
+      <form class="form form--2" id="f-fecha">
+        <label class="campo"><span>Fecha</span><input name="day" type="date" required></label>
+        <label class="campo"><span>Qué es</span><input name="title" maxlength="120" placeholder="Live set, DJ set, sesión, lanzamiento…"></label>
+        <label class="campo"><span>Lugar</span><input name="place" maxlength="120"></label>
+        <label class="campo"><span>Ciudad</span><input name="city" maxlength="80"></label>
+        <label class="campo"><span>Link (boletas o info)</span><input name="url" maxlength="300"></label>
+        <label class="campo"><span>Nota</span><input name="note" maxlength="200"></label>
+        <div class="ancho msg" id="m-fecha"></div>
+        <div class="ancho"><button class="btn btn--fill" type="submit">Publicar fecha</button></div>
+      </form>
+      <div class="lista" id="l-fechas"></div>
+    </div>
+
+    <div class="tab" id="t-drops">
+      <form class="form form--2" id="f-drop">
+        <label class="campo"><span>Título</span><input name="title" required maxlength="120"></label>
+        <label class="campo"><span>Artistas</span><input name="artists" maxlength="160" placeholder="tú y quien más participe"></label>
+        <label class="campo"><span>Fecha de salida (si es futura aparece como Próximo)</span><input name="day" type="date"></label>
+        <label class="campo"><span>Link (Spotify, YouTube…)</span><input name="url" maxlength="300"></label>
+        <label class="campo ancho"><span>Nota</span><input name="note" maxlength="200" placeholder="EP, single, video oficial…"></label>
+        <div class="ancho msg" id="m-drop"></div>
+        <div class="ancho"><button class="btn btn--fill" type="submit">Publicar drop</button></div>
+      </form>
+      <div class="lista" id="l-drops"></div>
+    </div>
+
+    <div class="tab" id="t-musica">
+      <form class="form form--2" id="f-track">
+        <label class="campo"><span>Título</span><input name="title" required maxlength="120"></label>
+        <label class="campo"><span>Artistas</span><input name="artists" maxlength="160"></label>
+        <label class="campo ancho"><span>Archivo de audio (MP3 recomendado, máx. 30 MB)</span><input name="file" type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg" required></label>
+        <div class="ancho msg" id="m-track"></div>
+        <div class="ancho"><button class="btn btn--fill" type="submit">Subir a la radio</button><div class="progreso oculto" id="prog"><i></i></div></div>
+      </form>
+      <div class="lista" id="l-tracks"></div>
+    </div>
+
+    <div class="tab" id="t-clave">
+      <form class="form" id="f-clave" style="max-width:26rem">
+        <label class="campo"><span>Contraseña actual</span><input name="current" type="password" required autocomplete="current-password"></label>
+        <label class="campo"><span>Nueva contraseña (mínimo 8)</span><input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+        <label class="campo"><span>Repite la nueva</span><input name="again" type="password" required autocomplete="new-password"></label>
+        <div class="msg" id="m-clave"></div>
+        <div><button class="btn btn--fill" type="submit">Cambiar contraseña</button></div>
+      </form>
+    </div>
+
+    <div class="tab" id="t-integrantes">
+      <form class="form form--2" id="f-nuevo">
+        <label class="campo"><span>Alias</span><input name="alias" required maxlength="60"></label>
+        <label class="campo"><span>Usuario</span><input name="slug" maxlength="30" placeholder="se genera del alias" autocapitalize="none"></label>
+        <label class="campo"><span>Rol</span><input name="role" maxlength="120"></label>
+        <label class="campo"><span>Ciudad</span><input name="city" maxlength="80"></label>
+        <label class="campo"><span>Contraseña temporal (la cambia al entrar)</span><div class="fila"><input name="password" required minlength="8" style="flex:1"><button class="btn btn--peq" type="button" id="gen-pass">Generar</button></div></label>
+        <label class="toggle"><input type="checkbox" name="is_admin"><span>También es administrador</span></label>
+        <div class="ancho msg" id="m-nuevo"></div>
+        <div class="ancho"><button class="btn btn--fill" type="submit">Crear canal</button></div>
+      </form>
+      <div class="lista" id="l-integrantes"></div>
+    </div>
+
+    <div class="tab" id="t-solicitudes">
+      <p style="color:var(--gris)">Lo que llega por el formulario de Únete. Cuando decidan, crea su canal en Integrantes.</p>
+      <div class="lista" id="l-solicitudes"></div>
+    </div>
+  </section>
+</main>
+
+<script src="/site.js"></script>
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const initials = a => String(a || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+const slugify = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30);
+const genPass = () => { const a = "abcdefghjkmnpqrstuvwxyz23456789"; return Array.from(crypto.getRandomValues(new Uint8Array(10)), b => a[b % a.length]).join(""); };
+$$("[data-nombre]").forEach(el => el.textContent = SITE.nombre);
+document.title = "Panel · " + SITE.nombre;
+
+let ME = null;
+const vista = id => { $$(".vista").forEach(v => v.classList.toggle("oculto", v.id !== id)); $("#salir").classList.toggle("oculto", id !== "v-app"); };
+const aviso = (id, texto, error) => { $("#" + id).innerHTML = texto ? `<p class="aviso ${error ? "aviso--error" : ""}">${esc(texto)}</p>` : ""; };
+async function api(path, opts = {}) {
+  const r = await fetch("/api" + path, { headers: opts.body && !(opts.body instanceof FormData) ? { "content-type": "application/json" } : {}, ...opts });
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401 && path !== "/login") { ME = null; vista("v-login"); }
+  if (!r.ok) throw new Error(d.error || ("Error " + r.status));
+  return d;
+}
+const form = f => Object.fromEntries(new FormData(f).entries());
+async function enviar(f, fn, msgId) {
+  const btn = $("button[type=submit]", f); btn.disabled = true; aviso(msgId, "");
+  try { await fn(); } catch (e) { aviso(msgId, e.message, true); }
+  btn.disabled = false;
+}
+
+/* ---------- arranque ---------- */
+async function arrancar() {
+  vista("v-cargando");
+  try {
+    const s = await fetch("/api/setup").then(r => r.json());
+    if (s.needsSetup) return vista("v-setup");
+    if (s.error) throw new Error(s.error);
+  } catch (e) { vista("v-login"); aviso("m-login", e.message, true); return; }
+  try { ME = (await api("/me")).me; entrar(); } catch { vista("v-login"); }
+}
+function entrar() {
+  vista("v-app");
+  $("#hola").textContent = ME.alias;
+  $("#hola-sub").innerHTML = `Tu página pública: <a href="/m/${esc(ME.slug)}" target="_blank" rel="noopener" style="color:var(--verde)">/m/${esc(ME.slug)}</a>${ME.is_admin ? ' <span class="badge">admin</span>' : ""}`;
+  $$(".solo-admin").forEach(b => b.classList.toggle("oculto", !ME.is_admin));
+  llenarPerfil(); cargarFechas(); cargarDrops(); cargarTracks();
+  if (ME.is_admin) { cargarIntegrantes(); cargarSolicitudes(); }
+}
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-tab]"); if (!b) return;
+  $$("#tabs button").forEach(x => x.classList.toggle("on", x === b));
+  $$(".tab").forEach(t => t.classList.toggle("on", t.id === "t-" + b.dataset.tab));
+});
+$("#salir").addEventListener("click", async e => { e.preventDefault(); await api("/logout", { method: "POST" }).catch(() => {}); ME = null; vista("v-login"); });
+
+/* ---------- setup y login ---------- */
+$("#f-setup").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  const d = await api("/setup", { method: "POST", body: JSON.stringify(form(e.target)) });
+  ME = (await api("/me")).me; entrar();
+}, "m-setup"); });
+$("#f-setup [name=alias]").addEventListener("input", e => { const s = $("#f-setup [name=slug]"); if (!s.dataset.tocado) s.value = slugify(e.target.value); });
+$("#f-setup [name=slug]").addEventListener("input", e => e.target.dataset.tocado = "1");
+
+$("#f-login").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  const d = await api("/login", { method: "POST", body: JSON.stringify(form(e.target)) });
+  ME = d.me; e.target.reset(); entrar();
+}, "m-login"); });
+
+/* ---------- perfil ---------- */
+function llenarPerfil() {
+  const f = $("#f-perfil");
+  f.alias.value = ME.alias; f.role.value = ME.role || ""; f.specialty.value = ME.specialty || ""; f.city.value = ME.city || "";
+  f.bio.value = ME.bio || ""; f.tags.value = (ME.tags || []).join(", ");
+  f.links.value = (ME.links || []).map(l => `${l.nombre} | ${l.url}`).join("\n");
+  f.available.checked = !!ME.available; f.status_note.value = ME.status_note || "";
+  pintarFoto();
+}
+function pintarFoto() {
+  const p = $("#foto-pre");
+  p.style.backgroundImage = ME.photo ? `url('${ME.photo}?v=${Date.now()}')` : "";
+  p.textContent = ME.photo ? "" : initials(ME.alias);
+}
+$("#f-perfil").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  const v = form(e.target);
+  const body = {
+    alias: v.alias, role: v.role, specialty: v.specialty, city: v.city, bio: v.bio,
+    tags: v.tags.split(",").map(s => s.trim()).filter(Boolean),
+    links: v.links.split("\n").map(l => { const [nombre, ...rest] = l.split("|"); return { nombre: (nombre || "").trim(), url: rest.join("|").trim() }; }).filter(l => l.nombre && l.url),
+    available: e.target.available.checked, status_note: v.status_note
+  };
+  ME = (await api("/me", { method: "PUT", body: JSON.stringify(body) })).me;
+  $("#hola").textContent = ME.alias;
+  aviso("m-perfil", "Guardado. Ya se ve en la consola.");
+}, "m-perfil"); });
+$("#foto-subir").addEventListener("click", async () => {
+  const file = $("#foto-file").files[0];
+  if (!file) return aviso("m-foto", "Elige una imagen primero", true);
+  const fd = new FormData(); fd.append("file", file);
+  try { const d = await api("/me/photo", { method: "POST", body: fd }); ME.photo = d.photo; pintarFoto(); aviso("m-foto", "Foto actualizada."); $("#foto-file").value = ""; }
+  catch (e) { aviso("m-foto", e.message, true); }
+});
+$("#foto-quitar").addEventListener("click", async () => {
+  try { await api("/me/photo", { method: "DELETE" }); ME.photo = ""; pintarFoto(); aviso("m-foto", "Foto quitada."); } catch (e) { aviso("m-foto", e.message, true); }
+});
+
+/* ---------- fechas ---------- */
+function pintarFechas(items) {
+  $("#l-fechas").innerHTML = items.length ? items.map(d => `
+    <div class="item"><div><div class="item__t">${esc(d.day)} · ${esc([d.place, d.city].filter(Boolean).join(", ") || d.title)}</div><div class="item__s">${esc([d.title, d.note, d.url].filter(Boolean).join(" · "))}</div></div>
+    <div class="item__acc"><button class="btn btn--peq btn--gris" data-del="dates" data-id="${d.id}">Eliminar</button></div></div>`).join("")
+    : `<p class="empty">No has publicado fechas. Las pasadas desaparecen solas de la página.</p>`;
+}
+async function cargarFechas() { pintarFechas((await api("/me/dates")).items); }
+$("#f-fecha").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  pintarFechas((await api("/me/dates", { method: "POST", body: JSON.stringify(form(e.target)) })).items);
+  e.target.reset(); aviso("m-fecha", "Fecha publicada.");
+}, "m-fecha"); });
+
+/* ---------- drops ---------- */
+function pintarDrops(items) {
+  $("#l-drops").innerHTML = items.length ? items.map(d => `
+    <div class="item"><div><div class="item__t">${esc(d.title)}</div><div class="item__s">${esc([d.artists, d.day, d.note, d.url].filter(Boolean).join(" · "))}</div></div>
+    <div class="item__acc"><button class="btn btn--peq btn--gris" data-del="drops" data-id="${d.id}">Eliminar</button></div></div>`).join("")
+    : `<p class="empty">No has publicado drops.</p>`;
+}
+async function cargarDrops() { pintarDrops((await api("/me/drops")).items); }
+$("#f-drop").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  pintarDrops((await api("/me/drops", { method: "POST", body: JSON.stringify(form(e.target)) })).items);
+  e.target.reset(); aviso("m-drop", "Drop publicado.");
+}, "m-drop"); });
+
+/* ---------- música ---------- */
+function pintarTracks(items) {
+  $("#l-tracks").innerHTML = items.length ? items.map(t => `
+    <div class="item"><div><div class="item__t">${esc(t.title)}</div><div class="item__s">${esc(t.artists)}${t.duration ? " · " + fmt(t.duration) : ""}</div></div>
+    <div class="item__acc"><button class="btn btn--peq btn--gris" data-del="tracks" data-id="${t.id}">Eliminar</button></div>
+    <audio controls preload="none" src="${esc(t.url)}"></audio></div>`).join("")
+    : `<p class="empty">No has subido música. Lo que subas suena en la radio del sitio.</p>`;
+}
+async function cargarTracks() { pintarTracks((await api("/me/tracks")).items); }
+const duracionDe = file => new Promise(res => {
+  const a = new Audio(); const u = URL.createObjectURL(file);
+  a.addEventListener("loadedmetadata", () => { res(Math.round(a.duration || 0)); URL.revokeObjectURL(u); });
+  a.addEventListener("error", () => { res(0); URL.revokeObjectURL(u); });
+  a.src = u;
+});
+$("#f-track").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  const f = e.target, file = f.file.files[0];
+  if (!file) throw new Error("Elige un archivo de audio");
+  if (file.size > 30 * 1024 * 1024) throw new Error("El archivo pesa más de 30 MB");
+  const fd = new FormData();
+  fd.append("title", f.title.value); fd.append("artists", f.artists.value); fd.append("duration", await duracionDe(file)); fd.append("file", file);
+  const prog = $("#prog"), barra = $("#prog i"); prog.classList.remove("oculto"); barra.style.width = "0";
+  const d = await new Promise((res, rej) => {
+    const x = new XMLHttpRequest(); x.open("POST", "/api/me/tracks");
+    x.upload.onprogress = ev => { if (ev.lengthComputable) barra.style.width = Math.round(ev.loaded / ev.total * 100) + "%"; };
+    x.onload = () => { let d = {}; try { d = JSON.parse(x.responseText); } catch {} x.status < 300 ? res(d) : rej(new Error(d.error || "Error " + x.status)); };
+    x.onerror = () => rej(new Error("Se cortó la subida")); x.send(fd);
+  });
+  prog.classList.add("oculto"); pintarTracks(d.items); f.reset(); aviso("m-track", "Ya suena en la radio.");
+}, "m-track").then(() => $("#prog").classList.add("oculto")); });
+
+/* eliminar propio */
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-del]"); if (!b) return;
+  if (!confirm("¿Eliminar? No se puede deshacer.")) return;
+  const tabla = b.dataset.del, id = b.dataset.id, admin = b.dataset.admin;
+  try {
+    if (admin) { await api(`/admin/${tabla}/${id}`, { method: "DELETE" }); tabla === "joins" ? cargarSolicitudes() : cargarIntegrantes(); return; }
+    const d = await api(`/me/${tabla}/${id}`, { method: "DELETE" });
+    ({ dates: pintarFechas, drops: pintarDrops, tracks: pintarTracks })[tabla](d.items);
+  } catch (err) { alert(err.message); }
+});
+
+/* ---------- contraseña ---------- */
+$("#f-clave").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  const v = form(e.target);
+  if (v.password !== v.again) throw new Error("Las contraseñas nuevas no coinciden");
+  await api("/me/password", { method: "PUT", body: JSON.stringify({ current: v.current, password: v.password }) });
+  e.target.reset(); aviso("m-clave", "Contraseña cambiada.");
+}, "m-clave"); });
+
+/* ---------- admin: integrantes ---------- */
+function pintarIntegrantes(items) {
+  $("#l-integrantes").innerHTML = items.map(m => `
+    <div class="item"><div><div class="item__t">${esc(m.alias)}${m.is_admin ? '<span class="badge">admin</span>' : ""}</div><div class="item__s">usuario: ${esc(m.slug)} · ${esc(m.role || "sin rol")} · ${m.available ? "disponible" : "no disponible"} · <a href="/m/${esc(m.slug)}" target="_blank" rel="noopener">ver página</a></div></div>
+    <div class="item__acc">
+      <input type="number" value="${m.sort}" title="Orden en la consola" style="width:4.5rem;background:var(--musgo);border:1px solid var(--linea);color:var(--hueso);padding:.3rem" data-sort="${m.id}">
+      <button class="btn btn--peq" data-pass="${m.id}">Nueva contraseña</button>
+      ${m.id !== ME.id ? `<button class="btn btn--peq" data-admin="${m.id}" data-val="${m.is_admin ? 0 : 1}">${m.is_admin ? "Quitar admin" : "Hacer admin"}</button>
+      <button class="btn btn--peq btn--gris" data-del="members" data-id="${m.id}" data-admin="1">Eliminar</button>` : ""}
+    </div></div>`).join("");
+}
+async function cargarIntegrantes() { pintarIntegrantes((await api("/admin/members")).items); }
+$("#gen-pass").addEventListener("click", () => $("#f-nuevo [name=password]").value = genPass());
+$("#f-nuevo [name=alias]").addEventListener("input", e => { const s = $("#f-nuevo [name=slug]"); if (!s.dataset.tocado) s.value = slugify(e.target.value); });
+$("#f-nuevo [name=slug]").addEventListener("input", e => e.target.dataset.tocado = "1");
+$("#f-nuevo").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  const v = form(e.target); v.is_admin = e.target.is_admin.checked;
+  const d = await api("/admin/members", { method: "POST", body: JSON.stringify(v) });
+  pintarIntegrantes(d.items);
+  const slug = v.slug || slugify(v.alias);
+  $("#m-nuevo").innerHTML = `<p class="aviso">Canal creado. Pásale esto: usuario <span class="clave">${esc(slug)}</span> · contraseña <span class="clave">${esc(v.password)}</span> · entra en <span class="clave">${location.origin}/panel</span></p>`;
+  e.target.reset(); delete $("#f-nuevo [name=slug]").dataset.tocado;
+}, "m-nuevo"); });
+document.addEventListener("click", async e => {
+  const p = e.target.closest("[data-pass]"), a = e.target.closest("[data-admin][data-val]");
+  try {
+    if (p) { const pass = prompt("Nueva contraseña (mínimo 8). Anótala para pasársela:", genPass()); if (!pass) return; pintarIntegrantes((await api(`/admin/members/${p.dataset.pass}`, { method: "PUT", body: JSON.stringify({ password: pass }) })).items); alert("Contraseña cambiada a: " + pass); }
+    if (a) pintarIntegrantes((await api(`/admin/members/${a.dataset.admin}`, { method: "PUT", body: JSON.stringify({ is_admin: a.dataset.val === "1" }) })).items);
+  } catch (err) { alert(err.message); }
+});
+document.addEventListener("change", async e => {
+  const s = e.target.closest("[data-sort]"); if (!s) return;
+  try { pintarIntegrantes((await api(`/admin/members/${s.dataset.sort}`, { method: "PUT", body: JSON.stringify({ sort: s.value }) })).items); } catch (err) { alert(err.message); }
+});
+
+/* ---------- admin: solicitudes ---------- */
+async function cargarSolicitudes() {
+  const items = (await api("/admin/joins")).items;
+  $("#l-solicitudes").innerHTML = items.length ? items.map(j => `
+    <div class="item"><div><div class="item__t">${esc(j.name)}</div><div class="item__s">${esc([j.role, j.city].filter(Boolean).join(" · "))}<br>contacto: ${esc(j.contact)}${j.links ? "<br>links: " + esc(j.links) : ""}${j.message ? "<br>" + esc(j.message) : ""}<br><span style="opacity:.6">${esc(j.created_at)}</span></div></div>
+    <div class="item__acc"><button class="btn btn--peq btn--gris" data-del="joins" data-id="${j.id}" data-admin="1">Eliminar</button></div></div>`).join("")
+    : `<p class="empty">Nadie ha pedido unirse todavía.</p>`;
+}
+
+arrancar();
+</script>
+</body>
+</html>

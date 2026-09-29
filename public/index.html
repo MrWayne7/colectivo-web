@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Colectivo</title>
+<meta name="description" content="Colectivo de músicos, productores, directores y artistas.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%2339FF14'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/estilo.css">
+<style>
+/* hero */
+.hero{position:relative;min-height:calc(100svh - 3.3rem);display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem;border-bottom:2px solid var(--verde);overflow:hidden}
+#scope{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hero__name{position:relative;font-family:var(--display);font-size:clamp(4.6rem,22vw,26rem);line-height:.86;letter-spacing:-.01em;text-transform:uppercase;overflow:hidden;padding-bottom:.04em}
+.hero__name span{display:block;transform:translateY(110%);animation:rise .9s cubic-bezier(.2,.8,.2,1) .15s forwards}
+@keyframes rise{to{transform:none}}
+.hero__tag{position:relative;max-width:34ch;margin-top:1.25rem;font-size:clamp(1.05rem,1.6vw,1.35rem)}
+.lineup{position:relative;display:flex;flex-wrap:wrap;align-items:baseline;gap:.15em .45em;margin-top:2.25rem;--base:clamp(1.9rem,5.5vw,5rem)}
+.lineup a{text-decoration:none;color:var(--verde);font-family:var(--display);text-transform:uppercase;line-height:1;font-size:calc(var(--base) * var(--k,1))}
+.lineup a:hover,.lineup a:focus-visible{color:var(--hueso)}
+.lineup .sep{color:var(--gris);font-family:var(--display);font-size:calc(var(--base) * .7);line-height:1}
+.hero__hint{position:relative;margin-top:.75rem;font-size:.85rem;color:var(--gris)}
+.hero__hint b{color:var(--verde);font-weight:500}
+
+/* consola */
+.console{background:var(--verde);color:var(--negro)}
+.console .sec__intro{color:var(--negro)}
+.console .empty{color:var(--negro);border-color:var(--negro)}
+.console .empty a{color:var(--negro);font-weight:700}
+.console :focus-visible{outline-color:var(--negro)}
+.strips{display:flex;gap:1rem;overflow-x:auto;padding:.5rem 0 1.25rem;scroll-snap-type:x proximity;scrollbar-color:var(--negro) transparent}
+.strip{flex:1 0 172px;max-width:250px;scroll-snap-align:start;border:2px solid var(--negro);display:flex;flex-direction:column;gap:.7rem;padding:.75rem;background:var(--verde);transition:opacity .25s}
+.strip__ch{display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;letter-spacing:.04em}
+.strip__go{display:block;text-decoration:none;color:inherit}
+.strip__avatar{aspect-ratio:1;border:2px solid var(--negro);display:grid;place-items:center;font-family:var(--display);font-size:2.6rem;line-height:1;background:var(--verde) center/cover no-repeat;transition:filter .25s,opacity .25s}
+.strip__go:hover .strip__avatar{filter:invert(1)}
+.strip__name{font-family:var(--display);font-size:1.55rem;line-height:1;text-transform:uppercase;margin-top:.6rem}
+.strip__go:hover .strip__name{text-decoration:underline;text-decoration-thickness:3px}
+.strip__role{font-size:.8rem;line-height:1.3;min-height:2.6em}
+.strip .estado{font-size:.75rem}
+.strip .estado::before{background:var(--negro);box-shadow:none}
+.strip .estado.no::before{background:var(--rec)}
+.fader-wrap{display:flex;gap:.65rem;height:190px;margin-top:auto;padding-top:.25rem}
+.fader{position:relative;flex:0 0 28px;border:2px solid var(--negro);background:repeating-linear-gradient(to bottom,var(--negro) 0 2px,transparent 2px 19px);touch-action:none;cursor:ns-resize;user-select:none}
+.cap{position:absolute;left:-7px;right:-7px;height:36px;background:var(--negro);border:2px solid var(--verde);box-shadow:0 0 0 2px var(--negro);translate:0 -50%;pointer-events:none}
+.cap::after{content:"";position:absolute;left:6px;right:6px;top:50%;height:2px;background:var(--verde);translate:0 -50%}
+.meter{flex:1;display:flex;flex-direction:column-reverse;gap:3px}
+.meter i{flex:1;border:1px solid var(--negro);transition:background .12s}
+.meter i.on{background:var(--negro)}
+.meter i.hot.on{background:var(--rec);border-color:var(--rec)}
+.ms{display:flex;gap:.5rem}
+.ms button{flex:1;border:2px solid var(--negro);background:none;font-weight:700;padding:.45rem 0;cursor:pointer;line-height:1}
+.ms .s.on{background:var(--negro);color:var(--verde)}
+.ms .m.on{background:var(--rec);border-color:var(--rec);color:#fff}
+.strip.is-muted .strip__avatar{filter:grayscale(1);opacity:.45}
+.strip.is-muted .meter i.on{background:transparent;border-color:var(--negro)}
+.strips.has-solo .strip:not(.is-solo){opacity:.3}
+@media (max-width:640px){.strip{flex-basis:150px}}
+
+/* panel de canal */
+.panel{position:fixed;top:0;right:0;z-index:60;height:100dvh;width:min(540px,100%);background:var(--negro);color:var(--hueso);border-left:2px solid var(--verde);transform:translateX(105%);transition:transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s .35s;overflow-y:auto;padding:1.25rem 1.5rem 2.5rem;display:flex;flex-direction:column;gap:1.1rem;visibility:hidden}
+.panel.open{transform:none;visibility:visible;transition:transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.panel__top{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;font-weight:700;letter-spacing:.05em;color:var(--verde)}
+.panel__close{background:none;border:2px solid var(--verde);color:var(--verde);width:2.6rem;height:2.6rem;font-size:1.4rem;line-height:1;cursor:pointer}
+.panel__close:hover{background:var(--verde);color:var(--negro)}
+.panel__photo{aspect-ratio:4/3;border:2px solid var(--verde);background:var(--musgo) center/cover no-repeat;display:grid;place-items:center;font-family:var(--display);font-size:5rem;color:var(--verde)}
+.panel__name{font-family:var(--display);font-size:clamp(3rem,10vw,5.5rem);line-height:.9;text-transform:uppercase}
+.panel__role{color:var(--verde);font-weight:500}
+.panel__meta{color:var(--gris);font-size:.95rem}
+.panel__bio{max-width:52ch}
+.tags{display:flex;flex-wrap:wrap;gap:.5rem}
+.tags span{border:1px solid var(--linea);padding:.25rem .6rem;font-size:.85rem;color:var(--gris)}
+.panel__links{display:flex;flex-direction:column;border-top:1px solid var(--linea)}
+.panel__links a{display:flex;justify-content:space-between;padding:.9rem 0;border-bottom:1px solid var(--linea);text-decoration:none;font-weight:500}
+.panel__links a:hover{color:var(--verde)}
+.panel__links a small{color:var(--gris);font-weight:400}
+.panel__nav{display:flex;gap:.5rem;margin-top:auto;padding-top:1rem}
+.panel__nav button{flex:1;border:2px solid var(--linea);background:none;padding:.75rem;cursor:pointer;text-align:left}
+.panel__nav button:hover{border-color:var(--verde)}
+.panel__nav button small{display:block;color:var(--gris);font-size:.75rem}
+.scrim{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.open{opacity:1;pointer-events:auto}
+@media (max-width:640px){.panel{top:auto;bottom:0;height:88dvh;width:100%;border-left:0;border-top:2px solid var(--verde);transform:translateY(105%)}}
+
+/* unirse + booking */
+.join{display:grid;grid-template-columns:1fr 1fr;gap:2rem 4rem;align-items:start}
+.join__txt{max-width:44ch}
+.join__txt p+p{margin-top:1rem}
+@media (max-width:820px){.join{grid-template-columns:1fr}}
+.booking .h2{margin-bottom:1.5rem}
+.mail{display:inline-block;font-family:var(--display);font-size:clamp(1.6rem,6.5vw,6rem);line-height:1;text-decoration:none;color:var(--verde);word-break:break-all;border-bottom:.08em solid transparent}
+.mail:hover{border-color:var(--verde)}
+.booking__row{display:flex;flex-wrap:wrap;gap:1rem;margin-top:1.75rem}
+
+@media (prefers-reduced-motion:reduce){
+  .hero__name span{animation:none;transform:none}
+  .panel,.scrim,.strip{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="bar__id" href="#inicio"><span class="rec" aria-hidden="true"></span><span data-nombre></span><span class="bar__live" data-live>EN SESIÓN</span></a>
+  <nav class="bar__nav" aria-label="Secciones">
+    <a href="#consola">Consola</a>
+    <a href="#radio">Radio</a>
+    <a href="#drops">Drops</a>
+    <a href="#fechas">Fechas</a>
+    <a href="#unirse">Unirse</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero" id="inicio">
+    <canvas id="scope" aria-hidden="true"></canvas>
+    <h1 class="hero__name"><span data-nombre></span></h1>
+    <p class="hero__tag" data-tagline></p>
+    <div class="lineup" id="lineup" aria-label="Integrantes"></div>
+    <p class="hero__hint" id="hint">Toca un nombre para ver su página. Dale play a la <b>radio</b> y la señal cobra vida.</p>
+  </section>
+
+  <section class="sec console" id="consola">
+    <div class="sec__head">
+      <h2 class="h2">Consola</h2>
+      <p class="sec__intro">Cada canal es una persona. Toca la foto o el nombre para abrir su página; S para un vistazo rápido, M para silenciar.</p>
+    </div>
+    <div class="strips" id="strips"></div>
+  </section>
+
+  <section class="sec" id="radio">
+    <div class="sec__head">
+      <h2 class="h2" data-radio-nombre>Radio</h2>
+      <p class="sec__intro">Solo música nuestra. Cada integrante sube sus tracks desde su panel y suenan aquí.</p>
+    </div>
+    <div class="radio-list" id="radio-list"></div>
+  </section>
+
+  <section class="sec" id="drops">
+    <div class="sec__head">
+      <h2 class="h2">Drops</h2>
+      <p class="sec__intro">Lo que hemos sacado y lo que viene.</p>
+    </div>
+    <div class="tracks" id="tracks"></div>
+  </section>
+
+  <section class="sec" id="fechas">
+    <div class="sec__head">
+      <h2 class="h2">Fechas</h2>
+      <p class="sec__intro">Dónde vamos a estar tocando, pinchando o grabando.</p>
+    </div>
+    <div class="dates" id="dates"></div>
+  </section>
+
+  <section class="sec" id="unirse">
+    <div class="sec__head"><h2 class="h2">Únete</h2></div>
+    <div class="join">
+      <div class="join__txt">
+        <p>Si haces música, produces, diriges, diseñas, fotografías o inventas cosas que todavía no tienen nombre, cuéntanos quién eres.</p>
+        <p>Leemos todo. Si hay química, te escribimos y te damos tu canal en la consola.</p>
+      </div>
+      <form class="form form--2" id="join-form" novalidate>
+        <label class="campo"><span>Tu nombre o alias</span><input name="name" required maxlength="80" autocomplete="name"></label>
+        <label class="campo"><span>Qué haces</span><input name="role" maxlength="120" placeholder="productor, vocalista, DJ, diseño…"></label>
+        <label class="campo"><span>Ciudad</span><input name="city" maxlength="80"></label>
+        <label class="campo"><span>Cómo te contactamos</span><input name="contact" required maxlength="160" placeholder="Instagram, correo o WhatsApp"></label>
+        <label class="campo ancho"><span>Links a tu trabajo</span><input name="links" maxlength="400" placeholder="Spotify, SoundCloud, YouTube, portafolio…"></label>
+        <label class="campo ancho"><span>Cuéntanos algo</span><textarea name="message" maxlength="1500"></textarea></label>
+        <input name="web" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+        <div class="ancho" id="join-msg"></div>
+        <div class="ancho"><button class="btn btn--fill" type="submit">Enviar</button></div>
+      </form>
+    </div>
+  </section>
+
+  <section class="sec booking" id="booking">
+    <h2 class="h2">Booking</h2>
+    <p class="sec__intro" style="margin-bottom:1.5rem">Shows, features, producción, video, foto o cualquier idea rara. Escríbenos.</p>
+    <a class="mail" data-mail href="#"></a>
+    <div class="booking__row" id="booking-row"></div>
+  </section>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" aria-hidden="true" aria-label="Canal">
+  <div class="panel__top"><span data-p-ch></span><button class="panel__close" id="panel-close" aria-label="Cerrar">×</button></div>
+  <div class="panel__photo" data-p-photo></div>
+  <h3 class="panel__name" data-p-name></h3>
+  <p class="panel__role" data-p-role></p>
+  <p class="panel__meta" data-p-meta></p>
+  <p class="estado" data-p-estado></p>
+  <p class="panel__bio" data-p-bio></p>
+  <div class="tags" data-p-tags></div>
+  <div class="panel__links" data-p-links></div>
+  <a class="btn btn--fill" data-p-go href="#" target="_blank" rel="noopener">Abrir su página</a>
+  <div class="panel__nav">
+    <button id="p-prev"><small>Canal anterior</small><span></span></button>
+    <button id="p-next"><small>Siguiente canal</small><span></span></button>
+  </div>
+</aside>
+
+<footer class="foot">
+  <span data-copy></span>
+  <nav id="foot-social" aria-label="Redes"></nav>
+  <span><a href="/panel">Entrar</a> · Sitio hecho por <a href="#" data-credit>BASHI</a></span>
+</footer>
+
+<script src="/site.js"></script>
+<script src="/radio.js"></script>
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2, "0");
+const initials = a => String(a || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const fecha = d => { const [y, m, dd] = String(d || "").split("-"); return m ? { dia: String(+dd), mes: MESES[+m - 1] || "", anio: y } : { dia: "", mes: "", anio: "" }; };
+let MIEMBROS = [], TODAY = new Date().toISOString().slice(0, 10);
+
+/* ---------- configuración estática ---------- */
+document.title = SITE.nombre;
+document.documentElement.style.setProperty("--beat", (60 / SITE.bpm) + "s");
+$$("[data-nombre]").forEach(el => el.textContent = SITE.nombre);
+$("[data-tagline]").textContent = SITE.tagline;
+$("[data-radio-nombre]").textContent = SITE.radio;
+$("[data-live]").style.display = SITE.enSesion ? "" : "none";
+$(".rec").classList.toggle("off", !SITE.enSesion);
+const mail = $("[data-mail]"); mail.textContent = SITE.email; mail.href = "mailto:" + SITE.email;
+$("#booking-row").innerHTML =
+  (SITE.whatsapp ? `<a class="btn btn--fill" href="https://wa.me/${SITE.whatsapp}" target="_blank" rel="noopener">WhatsApp</a>` : "") +
+  SITE.redes.map(r => `<a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.nombre)}</a>`).join("");
+$("#foot-social").innerHTML = SITE.redes.map(r => `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.nombre)}</a>`).join("");
+$("[data-copy]").textContent = `© ${new Date().getFullYear()} ${SITE.nombre}`;
+$("[data-credit]").href = SITE.creditoUrl || "#";
+
+/* nombre del hero ajustado al ancho */
+const fitName = () => {
+  const el = $(".hero__name");
+  const probe = document.createElement("span");
+  probe.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font:inherit;font-size:100px;display:inline";
+  el.appendChild(probe);
+  let maxW = 1;
+  SITE.nombre.split(/\s+/).forEach(w => { probe.textContent = w; maxW = Math.max(maxW, probe.getBoundingClientRect().width); });
+  probe.remove();
+  el.style.fontSize = Math.max(44, Math.min(560, el.clientWidth / maxW * 100 * .985)) + "px";
+};
+fitName(); document.fonts.ready.then(fitName); addEventListener("resize", fitName);
+
+/* ---------- datos vivos ---------- */
+async function cargar() {
+  let data;
+  try {
+    const r = await fetch("/api/public"); data = await r.json();
+    if (!r.ok) throw new Error(data.error || r.status);
+  } catch (e) {
+    $("#strips").innerHTML = `<p class="empty">No se pudo cargar la consola (${esc(e.message)}). Si estás instalando, revisa que setup.sh haya terminado.</p>`;
+    return;
+  }
+  MIEMBROS = data.members; TODAY = data.today || TODAY;
+  pintarLineup(); pintarConsola(); pintarDrops(data.drops); pintarFechas(data.dates);
+  Radio.init({ tracks: data.tracks, listEl: $("#radio-list"), name: SITE.radio });
+}
+
+function pintarLineup() {
+  const sizes = [1.55, .95, 1.25, .85, 1.4, 1.05, 1.2, .9];
+  $("#lineup").innerHTML = MIEMBROS.map((m, i) =>
+    `${i ? '<span class="sep" aria-hidden="true">/</span>' : ""}<a style="--k:${sizes[i % sizes.length]}" href="/m/${esc(m.slug)}" target="_blank" rel="noopener">${esc(m.alias)}</a>`
+  ).join("");
+  if (!MIEMBROS.length) $("#hint").innerHTML = "La consola está vacía por ahora.";
+}
+
+function pintarConsola() {
+  const strips = $("#strips");
+  strips.innerHTML = !MIEMBROS.length
+    ? `<p class="empty">Todavía no hay canales. Entra al <a href="/panel">panel</a>, crea el administrador y agrega integrantes.</p>`
+    : MIEMBROS.map((m, i) => `
+  <article class="strip" data-i="${i}">
+    <div class="strip__ch"><span>CH ${pad(i + 1)}</span><span data-lvl></span></div>
+    <a class="strip__go" href="/m/${esc(m.slug)}" target="_blank" rel="noopener" aria-label="Abrir la página de ${esc(m.alias)}">
+      <div class="strip__avatar" ${m.photo ? `style="background-image:url('${esc(m.photo)}')"` : ""}>${m.photo ? "" : esc(initials(m.alias))}</div>
+      <h3 class="strip__name">${esc(m.alias)}</h3>
+    </a>
+    <p class="strip__role">${esc(m.role)}</p>
+    <p class="estado ${m.available ? "" : "no"}">${m.available ? "Disponible" : "No disponible"}</p>
+    <div class="fader-wrap">
+      <div class="fader" role="slider" tabindex="0" aria-label="Nivel de ${esc(m.alias)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="cap"></div></div>
+      <div class="meter" aria-hidden="true">${Array.from({ length: 14 }, (_, k) => `<i class="${k >= 12 ? "hot" : ""}"></i>`).join("")}</div>
+    </div>
+    <div class="ms">
+      <button class="m" aria-pressed="false" aria-label="Mute">M</button>
+      <button class="s" aria-pressed="false" aria-label="Solo" data-open="${i}">S</button>
+    </div>
+  </article>`).join("");
+
+  $$(".strip").forEach(strip => {
+    const i = +strip.dataset.i;
+    const fader = $(".fader", strip), cap = $(".cap", strip), segs = $$(".meter i", strip), lvl = $("[data-lvl]", strip);
+    let level = .55 + ((i * 37) % 40) / 100;
+    const paint = () => {
+      cap.style.top = ((1 - level) * 100) + "%";
+      lvl.textContent = Math.round(level * 100);
+      fader.setAttribute("aria-valuenow", Math.round(level * 100));
+      const lit = Math.round(level * segs.length);
+      segs.forEach((s, k) => s.classList.toggle("on", k < lit));
+    };
+    const set = v => { level = Math.min(1, Math.max(0, v)); paint(); };
+    const fromEvent = e => { const r = fader.getBoundingClientRect(); set(1 - (e.clientY - r.top) / r.height); };
+    fader.addEventListener("pointerdown", e => { fader.setPointerCapture(e.pointerId); fromEvent(e); fader.dataset.drag = "1"; });
+    fader.addEventListener("pointermove", e => { if (fader.dataset.drag) fromEvent(e); });
+    fader.addEventListener("pointerup", () => delete fader.dataset.drag);
+    fader.addEventListener("pointercancel", () => delete fader.dataset.drag);
+    fader.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp" || e.key === "ArrowRight") { set(level + .05); e.preventDefault(); }
+      if (e.key === "ArrowDown" || e.key === "ArrowLeft") { set(level - .05); e.preventDefault(); }
+    });
+    $(".m", strip).addEventListener("click", e => {
+      const on = strip.classList.toggle("is-muted");
+      e.currentTarget.classList.toggle("on", on);
+      e.currentTarget.setAttribute("aria-pressed", on);
+    });
+    paint();
+  });
+}
+
+function pintarDrops(drops) {
+  $("#tracks").innerHTML = drops.length ? drops.map((d, i) => {
+    const f = fecha(d.day), proximo = d.day && d.day > TODAY;
+    const inner = `
+      <span class="track__n">${pad(i + 1)}</span>
+      <span class="track__t">${esc(d.title)}${proximo ? '<span class="track__tag">Próximo</span>' : ""}<span class="track__a">${esc(d.artists || d.alias)}${d.note ? " · " + esc(d.note) : ""}</span></span>
+      <span class="track__y">${f.dia ? `${f.dia} ${f.mes} ${f.anio}` : ""}</span>
+      <span class="track__d">${d.url ? "Escuchar" : ""}</span>`;
+    return d.url ? `<a class="track" href="${esc(d.url)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="track">${inner}</div>`;
+  }).join("") : `<p class="empty">Todavía no hay drops. Estamos en el estudio.</p>`;
+}
+
+function pintarFechas(dates) {
+  $("#dates").innerHTML = dates.length ? dates.map(d => {
+    const f = fecha(d.day);
+    const donde = [d.place, d.city].filter(Boolean).join(", ") || d.title;
+    const nota = [d.title && d.title !== donde ? d.title : "", `<a href="/m/${esc(d.slug)}" target="_blank" rel="noopener">${esc(d.alias)}</a>`, d.note].filter(Boolean).join(" · ");
+    return `
+  <div class="date">
+    <div class="date__when"><span class="date__day">${f.dia}</span><span class="date__mon">${f.mes}</span></div>
+    <div class="date__where">${esc(donde)}<span class="date__note">${nota}</span></div>
+    ${d.url ? `<a class="date__link" href="${esc(d.url)}" target="_blank" rel="noopener">Info</a>` : ""}
+  </div>`;
+  }).join("") : `<p class="empty">Sin fechas por ahora. Estamos en el estudio.</p>`;
+}
+
+/* ---------- panel de canal (solo) ---------- */
+const panel = $("#panel"), scrim = $("#scrim"), strips = $("#strips");
+let current = -1, lastFocus = null;
+function openChannel(i, focus = true) {
+  const m = MIEMBROS[i]; if (!m) return;
+  current = i;
+  $("[data-p-ch]", panel).textContent = `CH ${pad(i + 1)} de ${pad(MIEMBROS.length)}`;
+  const ph = $("[data-p-photo]", panel);
+  ph.style.backgroundImage = m.photo ? `url('${m.photo}')` : "";
+  ph.textContent = m.photo ? "" : initials(m.alias);
+  $("[data-p-name]", panel).textContent = m.alias;
+  $("[data-p-role]", panel).textContent = m.role;
+  $("[data-p-meta]", panel).textContent = [m.specialty, m.city].filter(Boolean).join(" · ");
+  const est = $("[data-p-estado]", panel);
+  est.className = "estado" + (m.available ? "" : " no");
+  est.textContent = (m.available ? "Disponible para trabajos" : "No disponible por ahora") + (m.status_note ? " — " + m.status_note : "");
+  $("[data-p-bio]", panel).textContent = m.bio || "";
+  $("[data-p-tags]", panel).innerHTML = (m.tags || []).map(t => `<span>${esc(t)}</span>`).join("");
+  $("[data-p-links]", panel).innerHTML = (m.links || []).map(l =>
+    `<a href="${esc(l.url)}" target="_blank" rel="noopener"><span>${esc(l.nombre)}</span><small>${esc(l.url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 32))}</small></a>`).join("");
+  $("[data-p-go]", panel).href = "/m/" + m.slug;
+  const prev = MIEMBROS[(i - 1 + MIEMBROS.length) % MIEMBROS.length], next = MIEMBROS[(i + 1) % MIEMBROS.length];
+  $("#p-prev span").textContent = prev.alias; $("#p-next span").textContent = next.alias;
+  $$(".strip").forEach(s => s.classList.toggle("is-solo", +s.dataset.i === i));
+  $$(".ms .s").forEach(b => { const on = +b.dataset.open === i; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  strips.classList.add("has-solo");
+  panel.classList.add("open"); scrim.classList.add("open");
+  panel.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  if (focus) { lastFocus = document.activeElement; $("#panel-close").focus(); }
+}
+function closeChannel() {
+  current = -1;
+  strips.classList.remove("has-solo");
+  $$(".strip").forEach(s => s.classList.remove("is-solo"));
+  $$(".ms .s").forEach(b => { b.classList.remove("on"); b.setAttribute("aria-pressed", "false"); });
+  panel.classList.remove("open"); scrim.classList.remove("open");
+  panel.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  if (lastFocus) { lastFocus.focus(); lastFocus = null; }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-open]"); if (!b) return;
+  const i = +b.dataset.open;
+  (current === i) ? closeChannel() : openChannel(i);
+});
+$("#panel-close").addEventListener("click", closeChannel);
+scrim.addEventListener("click", closeChannel);
+$("#p-prev").addEventListener("click", () => openChannel((current - 1 + MIEMBROS.length) % MIEMBROS.length, false));
+$("#p-next").addEventListener("click", () => openChannel((current + 1) % MIEMBROS.length, false));
+document.addEventListener("keydown", e => {
+  if (!panel.classList.contains("open")) return;
+  if (e.key === "Escape") closeChannel();
+  if (e.key === "ArrowRight") $("#p-next").click();
+  if (e.key === "ArrowLeft") $("#p-prev").click();
+});
+
+/* ---------- formulario de unirse ---------- */
+$("#join-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.currentTarget, msg = $("#join-msg"), btn = $("button[type=submit]", f);
+  const body = Object.fromEntries(new FormData(f).entries());
+  if (!body.name.trim() || !body.contact.trim()) { msg.innerHTML = `<p class="aviso aviso--error">Necesitamos tu nombre y una forma de contactarte.</p>`; return; }
+  btn.disabled = true;
+  try {
+    const r = await fetch("/api/join", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "No se pudo enviar");
+    f.reset();
+    msg.innerHTML = `<p class="aviso">Recibido. Te escribimos pronto.</p>`;
+  } catch (err) {
+    msg.innerHTML = `<p class="aviso aviso--error">${esc(err.message)}</p>`;
+  }
+  btn.disabled = false;
+});
+
+/* ---------- osciloscopio: cursor cuando hay silencio, señal real cuando suena la radio ---------- */
+(() => {
+  const c = $("#scope"), ctx = c.getContext("2d"), hero = $(".hero");
+  let w = 0, h = 0, mx = .5, my = .5, tx = .5, ty = .5, t = 0, buf = null;
+  const resize = () => {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    w = c.clientWidth; h = c.clientHeight;
+    c.width = w * dpr; c.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  const green = getComputedStyle(document.documentElement).getPropertyValue("--verde").trim();
+  const draw = () => {
+    mx += (tx - mx) * .06; my += (ty - my) * .06;
+    ctx.clearRect(0, 0, w, h);
+    const base = h * .42;
+    ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, base); ctx.lineTo(w, base); ctx.stroke();
+    ctx.strokeStyle = green; ctx.lineWidth = 2.2; ctx.lineJoin = "round";
+    ctx.shadowColor = green; ctx.shadowBlur = 12;
+    ctx.beginPath();
+    const an = Radio.analyser;
+    if (an && Radio.playing) {
+      if (!buf || buf.length !== an.fftSize) buf = new Uint8Array(an.fftSize);
+      an.getByteTimeDomainData(buf);
+      const amp = h * .32, step = buf.length / w;
+      for (let x = 0; x <= w; x += 2) {
+        const v = (buf[Math.min(buf.length - 1, Math.floor(x * step))] - 128) / 128;
+        const y = base + v * amp;
+        x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+    } else {
+      const freq = .004 + mx * .028, amp = h * .05 + my * h * .26;
+      for (let x = 0; x <= w; x += 3) {
+        const y = base + Math.sin(x * freq + t) * amp * .7 + Math.sin(x * freq * 2.6 - t * 1.4) * amp * .25 + Math.sin(x * .09 + t * 3) * (2 + my * 6);
+        x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      t += .035 * (SITE.bpm / 120);
+    }
+    ctx.stroke(); ctx.shadowBlur = 0;
+  };
+  const loop = () => { draw(); requestAnimationFrame(loop); };
+  const point = e => { const r = hero.getBoundingClientRect(); tx = (e.clientX - r.left) / r.width; ty = 1 - (e.clientY - r.top) / r.height; };
+  hero.addEventListener("pointermove", point);
+  addEventListener("resize", resize);
+  new ResizeObserver(() => { resize(); if (reduce) draw(); }).observe(hero);
+  resize();
+  reduce ? draw() : loop();
+})();
+
+cargar();
+</script>
+</body>
+</html>

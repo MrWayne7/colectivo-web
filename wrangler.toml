@@ -1,0 +1,12 @@
+name = "colectivo-web"
+compatibility_date = "2025-09-01"
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "colectivo-db"
+database_id = "77eb24eb-1d87-4d48-b43f-9baf58c1b675"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "colectivo-media"

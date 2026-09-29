@@ -1,0 +1,2 @@
+SESSION_SECRET=cambia-esto-por-algo-largo-y-aleatorio
+SETUP_KEY=clave-para-crear-el-primer-admin
