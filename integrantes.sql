@@ -1,0 +1,8 @@
+-- Integrantes iniciales. Se puede correr varias veces: si el usuario ya existe, no lo duplica.
+-- Después de correrlo, en el panel (Integrantes) dale "Nueva contraseña" a cada uno y pásasela.
+INSERT OR IGNORE INTO members (slug, alias, role, specialty, city, bio, tags, links, available, status_note, pass_hash, is_admin, sort) VALUES
+('cris',      'Cris',      'Beatmaker',                     '',                                       '', '', '["Beats","Producción"]',          '[{"nombre":"Instagram","url":"https://www.instagram.com/cris_gmz7"}]',          1, '', 'pendiente', 0, 1),
+('kobx',      'KOBX',      'DJ de crossover y electrónica', 'Próximamente productor de electrónica', '', '', '["DJ","Crossover","Electrónica"]', '[{"nombre":"Instagram","url":"https://www.instagram.com/kobx.musicofficial"}]',  1, '', 'pendiente', 0, 2),
+('gurandasu', 'Gurandasu', 'Beatmaker',                     '',                                       '', '', '["Beats","Producción"]',          '[{"nombre":"Instagram","url":"https://www.instagram.com/the_curly.sebax"}]',    1, '', 'pendiente', 0, 3),
+('jhuzan',    'Jhuzan',    'Artista, cantante y compositor','',                                       '', '', '["Voz","Composición"]',           '[{"nombre":"Instagram","url":"https://www.instagram.com/jhuz4n"}]',             1, '', 'pendiente', 0, 4),
+('daqian',    'Daqian',    'Songwriter, artista y cantante','',                                       '', '', '["Voz","Songwriting"]',           '[{"nombre":"Instagram","url":"https://www.instagram.com/daqianofficial"}]',      1, '', 'pendiente', 0, 5);

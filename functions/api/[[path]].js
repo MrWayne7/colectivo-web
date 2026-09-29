@@ -205,7 +205,7 @@ async function changePassword(env, me, request) {
   await env.DB.prepare("UPDATE members SET pass_hash = ? WHERE id = ?").bind(await hashPassword(pass, env.SESSION_SECRET), me.id).run();
   return json({ ok: true });
 }
-async function uploadPhoto(env, me, request) {
+async function uploadPhoto(env, me, request) {   // me = a quién se le pone la foto
   const form = await request.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return fail("Falta la imagen");
@@ -374,6 +374,10 @@ export async function onRequest({ request, env, params }) {
       if (!me.is_admin) return fail("Solo para administradores", 403);
       if (path === "/admin/members" && method === "GET") return adminMembers(env);
       if (path === "/admin/members" && method === "POST") return adminCreate(env, request);
+      if (parts[1] === "members" && parts[3] === "photo" && method === "POST") {
+        const target = await env.DB.prepare("SELECT * FROM members WHERE id = ?").bind(parseInt(parts[2])).first();
+        return target ? uploadPhoto(env, target, request) : fail("No encontrado", 404);
+      }
       if (parts[1] === "members" && id && method === "PUT") return adminUpdate(env, me, request, id);
       if (parts[1] === "members" && id && method === "DELETE") return adminDelete(env, me, id);
       if (path === "/admin/joins" && method === "GET") return adminJoins(env);

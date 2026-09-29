@@ -58,7 +58,29 @@
 .strip.is-muted .strip__avatar{filter:grayscale(1);opacity:.45}
 .strip.is-muted .meter i.on{background:transparent;border-color:var(--negro)}
 .strips.has-solo .strip:not(.is-solo){opacity:.3}
-@media (max-width:640px){.strip{flex-basis:150px}}
+@media (max-width:640px){
+  .lineup{flex-direction:column;align-items:flex-start;gap:0;margin-top:1.5rem}
+  .lineup .sep{display:none}
+  .lineup a{font-size:calc(var(--base) * 1.25 * var(--k,1))}
+  .hero__tag{font-size:1rem}
+  .strips{flex-direction:column;overflow:visible;gap:.75rem;scroll-snap-type:none}
+  .strip{flex:none;max-width:none;display:grid;grid-template-columns:4.5rem 1fr auto;grid-template-areas:"ch ch ch" "av name name" "av role role" "av est est" "fader fader ms";gap:.2rem .75rem;padding:.7rem .75rem .75rem;align-items:start}
+  .strip__ch{grid-area:ch;margin-bottom:.3rem}
+  .strip__go{display:contents}
+  .strip__avatar{grid-area:av;font-size:1.7rem;width:4.5rem;align-self:start}
+  .strip__name{grid-area:name;margin:0;font-size:1.6rem;align-self:start}
+  .strip__role{grid-area:role;min-height:0}
+  .strip .estado{grid-area:est}
+  .fader-wrap{grid-area:fader;height:auto;flex-direction:column;gap:.45rem;margin-top:.6rem;padding-top:0;align-self:end}
+  .fader{flex:none;height:28px;width:100%;background:repeating-linear-gradient(to right,var(--negro) 0 2px,transparent 2px 19px)}
+  .cap{left:auto;right:auto;top:-7px;bottom:-7px;width:36px;height:auto;translate:-50% 0}
+  .cap::after{left:50%;right:auto;top:6px;bottom:6px;width:2px;height:auto;translate:-50% 0}
+  .meter{flex-direction:row;height:10px}
+  .ms{grid-area:ms;flex-direction:column;justify-content:flex-end;gap:.4rem;align-self:end}
+  .ms button{width:3rem;height:2.5rem;padding:0}
+  .strip__go:hover .strip__name{text-decoration:none}
+  .strip__go .strip__name{text-decoration:underline;text-decoration-color:var(--negro);text-decoration-thickness:2px;text-underline-offset:3px}
+}
 
 /* panel de canal */
 .panel{position:fixed;top:0;right:0;z-index:60;height:100dvh;width:min(540px,100%);background:var(--negro);color:var(--hueso);border-left:2px solid var(--verde);transform:translateX(105%);transition:transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s .35s;overflow-y:auto;padding:1.25rem 1.5rem 2.5rem;display:flex;flex-direction:column;gap:1.1rem;visibility:hidden}
@@ -112,7 +134,18 @@
     <a href="#fechas">Fechas</a>
     <a href="#unirse">Unirse</a>
   </nav>
+  <button class="bar__menu" id="menu-btn" aria-expanded="false" aria-controls="menu">Menú</button>
 </header>
+<nav class="menu" id="menu" aria-label="Menú">
+  <button class="menu__close" id="menu-close" aria-label="Cerrar">×</button>
+  <a href="#consola">Consola</a>
+  <a href="#radio">Radio</a>
+  <a href="#drops">Drops</a>
+  <a href="#fechas">Fechas</a>
+  <a href="#unirse">Únete</a>
+  <a href="#booking">Booking</a>
+  <div class="menu__foot"><a href="/panel">Entrar al panel</a></div>
+</nav>
 
 <main>
   <section class="hero" id="inicio">
@@ -300,15 +333,18 @@ function pintarConsola() {
     const i = +strip.dataset.i;
     const fader = $(".fader", strip), cap = $(".cap", strip), segs = $$(".meter i", strip), lvl = $("[data-lvl]", strip);
     let level = .55 + ((i * 37) % 40) / 100;
+    const horiz = () => matchMedia("(max-width:640px)").matches;
     const paint = () => {
-      cap.style.top = ((1 - level) * 100) + "%";
+      if (horiz()) { cap.style.top = ""; cap.style.left = (level * 100) + "%"; }
+      else { cap.style.left = ""; cap.style.top = ((1 - level) * 100) + "%"; }
       lvl.textContent = Math.round(level * 100);
       fader.setAttribute("aria-valuenow", Math.round(level * 100));
       const lit = Math.round(level * segs.length);
       segs.forEach((s, k) => s.classList.toggle("on", k < lit));
     };
     const set = v => { level = Math.min(1, Math.max(0, v)); paint(); };
-    const fromEvent = e => { const r = fader.getBoundingClientRect(); set(1 - (e.clientY - r.top) / r.height); };
+    const fromEvent = e => { const r = fader.getBoundingClientRect(); set(horiz() ? (e.clientX - r.left) / r.width : 1 - (e.clientY - r.top) / r.height); };
+    addEventListener("resize", paint);
     fader.addEventListener("pointerdown", e => { fader.setPointerCapture(e.pointerId); fromEvent(e); fader.dataset.drag = "1"; });
     fader.addEventListener("pointermove", e => { if (fader.dataset.drag) fromEvent(e); });
     fader.addEventListener("pointerup", () => delete fader.dataset.drag);
@@ -408,6 +444,14 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowRight") $("#p-next").click();
   if (e.key === "ArrowLeft") $("#p-prev").click();
 });
+
+/* ---------- menú móvil ---------- */
+const menu = $("#menu"), menuBtn = $("#menu-btn");
+const setMenu = open => { menu.classList.toggle("open", open); document.body.classList.toggle("menu-open", open); menuBtn.setAttribute("aria-expanded", open); };
+menuBtn.addEventListener("click", () => setMenu(true));
+$("#menu-close").addEventListener("click", () => setMenu(false));
+menu.addEventListener("click", e => { if (e.target.closest("a")) setMenu(false); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && menu.classList.contains("open")) setMenu(false); });
 
 /* ---------- formulario de unirse ---------- */
 $("#join-form").addEventListener("submit", async e => {

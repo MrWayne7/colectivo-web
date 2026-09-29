@@ -29,7 +29,18 @@ button,input,select,textarea{font:inherit;color:inherit}
 .bar__nav{display:flex;flex-shrink:0;gap:1.25rem;font-weight:500}
 .bar__nav a{text-decoration:none;padding:.25rem 0;border-bottom:2px solid transparent}
 .bar__nav a:hover{border-color:var(--verde)}
+.bar__menu{display:none;background:none;border:2px solid var(--verde);color:var(--verde);font-family:var(--display);letter-spacing:.06em;padding:.35rem .7rem;cursor:pointer;text-transform:uppercase}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.15}}
+
+/* menú de pantalla completa (móvil) */
+.menu{position:fixed;inset:0;z-index:80;background:var(--negro);display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem;padding-bottom:calc(2rem + env(safe-area-inset-bottom,0px));gap:.1rem;transform:translateY(-102%);transition:transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s .35s;visibility:hidden}
+.menu.open{transform:none;visibility:visible;transition:transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.menu a{font-family:var(--display);font-size:clamp(3rem,15vw,5.5rem);line-height:.95;text-transform:uppercase;text-decoration:none;color:var(--hueso);padding:.05em 0;border-bottom:1px solid var(--linea)}
+.menu a:active,.menu a:hover{color:var(--verde)}
+.menu__close{position:absolute;top:.7rem;right:1.25rem;background:none;border:2px solid var(--verde);color:var(--verde);width:2.6rem;height:2.6rem;font-size:1.4rem;line-height:1;cursor:pointer}
+.menu__foot{margin-top:1rem;color:var(--gris);font-size:.9rem;display:flex;gap:1rem;flex-wrap:wrap}
+.menu__foot a{font:inherit;text-transform:none;border:0;padding:0;color:var(--gris)}
+body.menu-open{overflow:hidden}
 
 /* secciones */
 .sec{padding:3.5rem 1.25rem 4.5rem;border-bottom:2px solid var(--verde)}
@@ -130,13 +141,22 @@ button,input,select,textarea{font:inherit;color:inherit}
 .player__radio i{width:.55rem;height:.55rem;border-radius:50%;background:var(--verde);box-shadow:0 0 8px var(--verde);animation:blink var(--beat) steps(1) infinite}
 body.has-player{padding-bottom:5.5rem}
 @media (max-width:640px){
-  .player{grid-template-columns:auto 1fr;padding:.5rem .8rem;padding-bottom:calc(.5rem + env(safe-area-inset-bottom,0px))}
+  .player{grid-template-columns:auto 1fr;padding:.55rem .8rem;padding-bottom:calc(.55rem + env(safe-area-inset-bottom,0px));gap:.75rem}
   .player__radio{display:none}
-  .player__ctrl button{width:2.3rem;height:2.3rem}
-  .bar__nav{gap:.75rem;font-size:.85rem;flex-shrink:1;min-width:0;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
-  .bar__nav::-webkit-scrollbar{display:none}
-  .bar__nav a{white-space:nowrap}
-  .bar__id{font-size:1.1rem;flex:0 0 auto;max-width:48%}
+  .player__ctrl{gap:.3rem}
+  .player__ctrl button{width:2.5rem;height:2.5rem}
+  .player__ctrl .shuf{display:none}
+  .player__t{font-size:1.05rem}
+  .song{padding:1rem .25rem;grid-template-columns:2.6rem 1fr auto}
+  .song__p{width:2.6rem;height:2.6rem}
+  .track{padding:1rem .25rem}
+  .date__when{min-width:5.5rem}
+  .h2{font-size:clamp(3.2rem,16vw,9.5rem)}
+  .sec__head{margin-bottom:1.5rem}
+  body.has-player{padding-bottom:5.8rem}
+  .bar__nav{display:none}
+  .bar__menu{display:inline-block}
+  .bar__id{font-size:1.15rem;flex:1 1 auto}
   .bar__live{display:none}
   .sec{padding:2.75rem 1rem 3.5rem}
 }
