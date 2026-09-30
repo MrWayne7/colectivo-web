@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/estilo.css">
+<script src="/site.js"></script>
+<script>document.documentElement.dataset.theme = (window.SITE && SITE.tema) || "light";</script>
 <style>
 main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
 .vista{display:flex;flex-direction:column;gap:1.5rem}
@@ -17,7 +19,7 @@ main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
 .h1 small{display:block;font-family:var(--texto);font-size:1rem;color:var(--gris);text-transform:none;margin-top:.5rem}
 .tabs{display:flex;flex-wrap:wrap;gap:.4rem;border-bottom:1px solid var(--linea);padding-bottom:1rem}
 .tabs button{background:none;border:2px solid var(--linea);padding:.5rem .9rem;cursor:pointer;font-weight:500}
-.tabs button.on{border-color:var(--verde);color:var(--verde)}
+.tabs button.on{border-color:var(--acento);color:var(--acento)}
 .tab{display:none;flex-direction:column;gap:1.5rem}
 .tab.on{display:flex}
 .lista{display:flex;flex-direction:column;border-top:1px solid var(--linea)}
@@ -25,9 +27,10 @@ main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
 .item__t{font-family:var(--display);font-size:1.3rem;line-height:1;text-transform:uppercase}
 .item__s{color:var(--gris);font-size:.9rem;margin-top:.25rem;overflow-wrap:anywhere}
 .item__acc{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:flex-end}
-.item audio{width:100%;grid-column:1/-1;height:2.2rem;filter:invert(1) hue-rotate(90deg)}
+.item audio{width:100%;grid-column:1/-1;height:2.2rem}
+[data-theme="dark"] .item audio{filter:invert(1) hue-rotate(90deg)}
 .foto{display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap}
-.foto__pre{width:8rem;height:8rem;border:2px solid var(--verde);background:var(--musgo) center/cover no-repeat;display:grid;place-items:center;font-family:var(--display);font-size:2.5rem;color:var(--verde)}
+.foto__pre{width:8rem;height:8rem;border:2px solid var(--verde);background:var(--musgo) center/cover no-repeat;display:grid;place-items:center;font-family:var(--display);font-size:2.5rem;color:var(--acento)}
 .progreso{height:6px;background:var(--linea);margin-top:.5rem}
 .progreso i{display:block;height:100%;width:0;background:var(--verde);transition:width .2s}
 .badge{font-size:.7rem;font-weight:700;background:var(--verde);color:var(--negro);padding:.1rem .4rem;margin-left:.5rem;vertical-align:middle;font-family:var(--texto)}
@@ -184,7 +187,6 @@ main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
   </section>
 </main>
 
-<script src="/site.js"></script>
 <script>
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -226,7 +228,7 @@ async function arrancar() {
 function entrar() {
   vista("v-app");
   $("#hola").textContent = ME.alias;
-  $("#hola-sub").innerHTML = `Tu página pública: <a href="/m/${esc(ME.slug)}" target="_blank" rel="noopener" style="color:var(--verde)">/m/${esc(ME.slug)}</a>${ME.is_admin ? ' <span class="badge">admin</span>' : ""}`;
+  $("#hola-sub").innerHTML = `Tu página pública: <a href="/m/${esc(ME.slug)}" target="_blank" rel="noopener" style="color:var(--acento)">/m/${esc(ME.slug)}</a>${ME.is_admin ? ' <span class="badge">admin</span>' : ""}`;
   $$(".solo-admin").forEach(b => b.classList.toggle("oculto", !ME.is_admin));
   llenarPerfil(); cargarFechas(); cargarDrops(); cargarTracks();
   if (ME.is_admin) { cargarIntegrantes(); cargarSolicitudes(); }
@@ -370,7 +372,7 @@ function pintarIntegrantes(items) {
   $("#l-integrantes").innerHTML = items.map(m => `
     <div class="item"><div><div class="item__t">${esc(m.alias)}${m.is_admin ? '<span class="badge">admin</span>' : ""}</div><div class="item__s">usuario: ${esc(m.slug)} · ${esc(m.role || "sin rol")} · ${m.available ? "disponible" : "no disponible"} · <a href="/m/${esc(m.slug)}" target="_blank" rel="noopener">ver página</a></div></div>
     <div class="item__acc">
-      <input type="number" value="${m.sort}" title="Orden en la consola" style="width:4.5rem;background:var(--musgo);border:1px solid var(--linea);color:var(--hueso);padding:.3rem" data-sort="${m.id}">
+      <input type="number" value="${m.sort}" title="Orden en la consola" style="width:4.5rem;background:var(--musgo);border:1px solid var(--linea);color:var(--tinta);padding:.3rem" data-sort="${m.id}">
       <button class="btn btn--peq" data-pass="${m.id}">Nueva contraseña</button>
       <label class="btn btn--peq" style="cursor:pointer">Foto<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-foto="${m.id}" style="display:none"></label>
       ${m.id !== ME.id ? `<button class="btn btn--peq" data-admin="${m.id}" data-val="${m.is_admin ? 0 : 1}">${m.is_admin ? "Quitar admin" : "Hacer admin"}</button>

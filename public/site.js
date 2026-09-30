@@ -1,6 +1,7 @@
 /* Configuración del sitio. Lo que no depende de cada integrante vive aquí. */
 window.SITE = {
   nombre: "COLECTIVO",              // nombre del colectivo (placeholder, cámbialo)
+  tema: "light",                    // "light" (fondo claro) o "dark" (fondo negro)
   tagline: "Músicos, productores, directores y artistas haciendo cosas juntos desde Bogotá.",
   radio: "Radio Colectivo",         // nombre de la estación
   enSesion: true,                   // true = punto rojo parpadeando en la barra
