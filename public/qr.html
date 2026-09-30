@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%2339FF14'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/estilo.css">
+<script src="/site.js"></script>
+<script src="/tema.js"></script>
+<script src="/qrcode.js"></script>
+<style>
+main{max-width:40rem;margin:0 auto;padding:2rem 1.25rem 4rem;display:flex;flex-direction:column;gap:1.5rem}
+.h1{font-family:var(--display);font-size:clamp(2.6rem,10vw,5rem);line-height:.9;text-transform:uppercase}
+.tarjeta{display:grid;place-items:center;gap:1rem;padding:2rem;border:2px solid var(--verde)}
+.tarjeta canvas,.tarjeta img{width:min(70vw,320px)!important;height:auto!important;image-rendering:pixelated}
+.tarjeta b{font-family:var(--display);font-size:1.6rem;text-transform:uppercase;letter-spacing:.04em}
+.tarjeta small{font-family:ui-monospace,Menlo,monospace;color:var(--gris);overflow-wrap:anywhere;text-align:center}
+.fila{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.campo{flex:1;min-width:14rem}
+</style>
+</head>
+<body>
+<header class="bar"><a class="bar__id" href="/"><span class="rec off"></span><span data-nombre></span></a><div class="bar__der"><button class="bar__tema" data-tema-btn type="button"></button></div></header>
+<main>
+  <h1 class="h1">QR para<br>stickers y flyers</h1>
+  <div class="fila">
+    <label class="campo"><span style="font-size:.85rem;color:var(--gris)">Qué enlazar</span><select id="destino"><option value="/">Inicio del sitio</option></select></label>
+    <label class="campo"><span style="font-size:.85rem;color:var(--gris)">Colores</span><select id="colores"><option value="negro">Negro sobre claro</option><option value="verde">Verde sobre negro</option><option value="negroverde">Negro sobre verde</option></select></label>
+  </div>
+  <div class="tarjeta" id="tarjeta"><div id="qr"></div><b data-nombre></b><small id="url"></small></div>
+  <div class="fila"><button class="btn btn--fill" id="descargar">Descargar PNG (2000 px)</button><a class="btn" href="/">Volver</a></div>
+  <p style="color:var(--gris);font-size:.9rem">Imprímelo mínimo a 2 cm de lado. Si consiguen dominio, cambia <code>url</code> en <code>site.js</code> y regenera.</p>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+document.querySelectorAll("[data-nombre]").forEach(el => el.textContent = SITE.nombre);
+const base = (SITE.url || location.origin).replace(/\/$/, "");
+const paletas = { negro: ["#000000", "#F1F4EA"], verde: ["#39FF14", "#000000"], negroverde: ["#000000", "#39FF14"] };
+let ultimoTexto = "";
+function pintarQR(cont, texto, tam, dark, light) {
+  const qr = qrcode(0, "M"); qr.addData(texto); qr.make();
+  const n = qr.getModuleCount(), margen = 2, cell = Math.floor(tam / (n + margen * 2)), size = cell * (n + margen * 2);
+  const cv = document.createElement("canvas"); cv.width = size; cv.height = size; const cx = cv.getContext("2d");
+  cx.fillStyle = light; cx.fillRect(0, 0, size, size); cx.fillStyle = dark;
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) cx.fillRect((c + margen) * cell, (r + margen) * cell, cell, cell);
+  cont.innerHTML = ""; cont.appendChild(cv); return cv;
+}
+function generar(tamano) {
+  const dest = $("#destino").value, [dark, light] = paletas[$("#colores").value];
+  const texto = base + dest; ultimoTexto = texto;
+  const cont = tamano ? document.createElement("div") : $("#qr");
+  pintarQR(cont, texto, tamano || 320, dark, light);
+  if (!tamano) { $("#url").textContent = texto; $("#tarjeta").style.background = light; $("#tarjeta").style.color = dark; }
+  return cont;
+}
+async function cargarMiembros() {
+  try { const d = await fetch("/api/public").then(r => r.json()); d.members.forEach(m => { const o = document.createElement("option"); o.value = "/m/" + m.slug; o.textContent = "Página de " + m.alias; $("#destino").appendChild(o); }); } catch {}
+}
+$("#destino").addEventListener("change", () => generar()); $("#colores").addEventListener("change", () => generar());
+$("#descargar").addEventListener("click", () => {
+  const cont = generar(2000); const canvas = cont.querySelector("canvas");
+  setTimeout(() => { const a = document.createElement("a"); a.download = "qr-" + (SITE.nombre || "sitio").toLowerCase().replace(/\s+/g, "-") + ".png"; a.href = canvas.toDataURL("image/png"); a.click(); }, 50);
+});
+generar(); cargarMiembros();
+</script>
+</body>
+</html>

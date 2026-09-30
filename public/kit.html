@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Press kit</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%2339FF14'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/estilo.css">
+<script src="/site.js"></script>
+<script>document.documentElement.dataset.theme = "light";</script>
+<script src="/qrcode.js"></script>
+<style>
+body{background:#d9ddd3}
+.barra{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.7rem 1.25rem;background:var(--negro);color:var(--hueso,#EDF3E8);color:#EDF3E8}
+.barra a,.barra button{color:#EDF3E8;border-color:var(--verde)}
+.barra .btn--fill{color:var(--negro)}
+.hoja{width:210mm;min-height:297mm;margin:1.5rem auto;background:var(--fondo);color:var(--tinta);padding:16mm 16mm 14mm;display:grid;grid-template-rows:auto 1fr auto;gap:8mm;box-shadow:0 10px 40px rgba(0,0,0,.25);page-break-after:always;break-after:page}
+.hoja:last-child{page-break-after:auto;break-after:auto}
+.cab{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid var(--verde);padding-bottom:4mm}
+.cab__col{font-family:var(--display);font-size:14pt;letter-spacing:.06em;text-transform:uppercase}
+.cab__tipo{font-size:9pt;color:var(--gris);text-transform:uppercase;letter-spacing:.08em}
+.cuerpo{display:grid;grid-template-columns:70mm 1fr;gap:8mm;align-content:start}
+.foto{aspect-ratio:4/5;background:var(--musgo) center/cover no-repeat;display:grid;place-items:center;font-family:var(--display);font-size:48pt;color:var(--verde);border:2px solid var(--negro)}
+.nombre{font-family:var(--display);font-size:38pt;line-height:.9;text-transform:uppercase;margin-bottom:2mm;overflow-wrap:anywhere}
+.rol{color:var(--acento);font-weight:700;font-size:12pt}
+.meta{color:var(--gris);font-size:10pt;margin-bottom:3mm}
+.bio{font-size:10.5pt;line-height:1.45;max-width:60ch}
+.tags{margin-top:3mm;display:flex;flex-wrap:wrap;gap:1.5mm}
+.tags span{font-size:8.5pt;border:1px solid var(--linea);padding:.5mm 2mm;color:var(--gris)}
+.bloque{margin-top:5mm}
+.bloque h3{font-family:var(--display);font-size:13pt;text-transform:uppercase;letter-spacing:.03em;border-bottom:1px solid var(--linea);margin-bottom:2mm;padding-bottom:1mm}
+.bloque ul{list-style:none;font-size:9.5pt;line-height:1.5}
+.bloque li b{font-weight:600}
+.bloque li small{color:var(--gris)}
+.pie{display:grid;grid-template-columns:1fr auto;gap:6mm;align-items:end;border-top:1px solid var(--linea);padding-top:4mm;font-size:8.5pt;color:var(--gris)}
+.pie .url{font-family:ui-monospace,Menlo,monospace;color:var(--tinta)}
+.qr{width:24mm;height:24mm}
+.qr img,.qr canvas{width:24mm!important;height:24mm!important}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+.mini{display:grid;grid-template-columns:28mm 1fr;gap:4mm;align-items:start}
+.mini .foto{font-size:22pt}
+.mini .nombre{font-size:18pt}
+.nada{padding:3rem;text-align:center;color:var(--gris)}
+@media print{
+  body{background:#fff}
+  .barra{display:none}
+  .hoja{margin:0;box-shadow:none;width:auto;min-height:auto;padding:12mm}
+  @page{size:A4;margin:0}
+  a{text-decoration:none;color:inherit}
+}
+@media (max-width:820px){.hoja{width:auto;margin:0;padding:1.25rem}.cuerpo{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="barra">
+  <span><b id="titulo">Press kit</b> <span style="opacity:.7">· vista previa</span></span>
+  <span style="display:flex;gap:.6rem"><a class="btn btn--peq" href="/" style="color:#EDF3E8">Ir al sitio</a><button class="btn btn--peq btn--fill" onclick="window.print()">Guardar como PDF</button></span>
+</div>
+<main id="main"><p class="nada">Armando el press kit…</p></main>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const initials = a => String(a || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+const base = (SITE.url || location.origin).replace(/\/$/, "");
+const slug = (location.pathname.match(/^\/kit\/([^/]+)/) || [])[1] || "";
+const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+function pintarQR(cont, texto, tam, dark, light) {
+  const qr = qrcode(0, "M"); qr.addData(texto); qr.make();
+  const n = qr.getModuleCount(), margen = 2, cell = Math.floor(tam / (n + margen * 2)), size = cell * (n + margen * 2);
+  const cv = document.createElement("canvas"); cv.width = size; cv.height = size; const cx = cv.getContext("2d");
+  cx.fillStyle = light; cx.fillRect(0, 0, size, size); cx.fillStyle = dark;
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) cx.fillRect((c + margen) * cell, (r + margen) * cell, cell, cell);
+  cont.innerHTML = ""; cont.appendChild(cv); return cv;
+}
+
+function hojaMiembro(m, extra = {}) {
+  const url = `${base}/m/${m.slug}`;
+  const links = (m.links || []).map(l => `<li><b>${esc(l.nombre)}</b> <small>${esc(l.url.replace(/^https?:\/\/(www\.)?/, ""))}</small></li>`).join("");
+  const serv = (extra.services || []).map(x => `<li><b>${esc(x.name)}</b>${x.price ? ` <small>desde ${esc(x.price)}</small>` : ""}</li>`).join("");
+  const tracks = (extra.tracks || []).slice(0, 6).map(t => `<li><b>${esc(t.title)}</b> <small>${esc(t.artists || "")}${t.duration ? " · " + fmt(t.duration) : ""}</small></li>`).join("");
+  const fechas = (extra.dates || []).slice(0, 5).map(d => `<li><b>${esc(d.day)}</b> ${esc([d.place, d.city].filter(Boolean).join(", ") || d.title)}</li>`).join("");
+  return `<section class="hoja">
+    <header class="cab"><span class="cab__col">${esc(SITE.nombre)}</span><span class="cab__tipo">Press kit · ${esc(m.alias)}</span></header>
+    <div class="cuerpo">
+      <div>
+        <div class="foto" ${m.photo ? `style="background-image:url('${esc(m.photo)}')"` : ""}>${m.photo ? "" : esc(initials(m.alias))}</div>
+        ${links ? `<div class="bloque"><h3>Links</h3><ul>${links}</ul></div>` : ""}
+        ${serv ? `<div class="bloque"><h3>Servicios</h3><ul>${serv}</ul></div>` : ""}
+      </div>
+      <div>
+        <h1 class="nombre">${esc(m.alias)}</h1>
+        ${m.role ? `<p class="rol">${esc(m.role)}</p>` : ""}
+        <p class="meta">${esc([m.specialty, m.city].filter(Boolean).join(" · "))}</p>
+        ${m.bio ? `<p class="bio">${esc(m.bio).replace(/\n/g, "<br>")}</p>` : ""}
+        ${m.tags && m.tags.length ? `<div class="tags">${m.tags.map(t => `<span>${esc(t)}</span>`).join("")}</div>` : ""}
+        ${tracks ? `<div class="bloque"><h3>Música</h3><ul>${tracks}</ul></div>` : ""}
+        ${fechas ? `<div class="bloque"><h3>Próximas fechas</h3><ul>${fechas}</ul></div>` : ""}
+        <div class="bloque"><h3>Contacto</h3><ul>
+          ${m.whatsapp ? `<li><b>WhatsApp</b> <small>+${esc(m.whatsapp)}</small></li>` : ""}
+          ${SITE.email ? `<li><b>Booking del colectivo</b> <small>${esc(SITE.email)}</small></li>` : ""}
+          ${SITE.whatsapp && !m.whatsapp ? `<li><b>WhatsApp del colectivo</b> <small>+${esc(SITE.whatsapp)}</small></li>` : ""}
+        </ul></div>
+      </div>
+    </div>
+    <footer class="pie"><div>Página del artista<br><span class="url">${esc(url)}</span><br>${esc(base)}</div><div class="qr" data-qr="${esc(url)}"></div></footer>
+  </section>`;
+}
+
+function hojaColectivo(data) {
+  const url = base + "/";
+  const cards = data.members.map(m => `<div class="mini">
+    <div class="foto" ${m.photo ? `style="background-image:url('${esc(m.photo)}')"` : ""}>${m.photo ? "" : esc(initials(m.alias))}</div>
+    <div><h2 class="nombre">${esc(m.alias)}</h2><p class="rol" style="font-size:9.5pt">${esc(m.role)}</p><p class="meta">${esc([m.specialty, m.city].filter(Boolean).join(" · "))}</p>
+    <p style="font-size:9pt">${esc((m.bio || "").slice(0, 220))}${(m.bio || "").length > 220 ? "…" : ""}</p>
+    <p style="font-size:8.5pt;color:var(--gris)">${esc(base)}/m/${esc(m.slug)}</p></div>
+  </div>`).join("");
+  return `<section class="hoja">
+    <header class="cab"><span class="cab__col">${esc(SITE.nombre)}</span><span class="cab__tipo">Press kit · colectivo</span></header>
+    <div>
+      <h1 class="nombre" style="font-size:56pt">${esc(SITE.nombre)}</h1>
+      <p class="bio" style="font-size:12pt;max-width:70ch">${esc(SITE.tagline)}</p>
+      <div class="bloque"><h3>Integrantes</h3></div>
+      <div class="grid">${cards}</div>
+    </div>
+    <footer class="pie"><div>Booking<br><span class="url">${esc(SITE.email || "")}${SITE.whatsapp ? " · +" + esc(SITE.whatsapp) : ""}</span><br>${esc(url)}</div><div class="qr" data-qr="${esc(url)}"></div></footer>
+  </section>`;
+}
+
+async function armar() {
+  const main = $("#main");
+  try {
+    if (slug) {
+      const r = await fetch("/api/member/" + encodeURIComponent(slug)); const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "No existe");
+      document.title = `Press kit · ${d.member.alias}`; $("#titulo").textContent = `Press kit · ${d.member.alias}`;
+      main.innerHTML = hojaMiembro(d.member, d);
+    } else {
+      const r = await fetch("/api/public"); const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Error");
+      document.title = `Press kit · ${SITE.nombre}`; $("#titulo").textContent = `Press kit · ${SITE.nombre}`;
+      const porId = Object.fromEntries(d.members.map(m => [m.id, m]));
+      main.innerHTML = hojaColectivo(d) + d.members.map(m => hojaMiembro(m, {
+        services: (d.services || []).filter(x => x.member_id === m.id),
+        tracks: d.tracks.filter(t => t.member_id === m.id),
+        dates: d.dates.filter(x => x.member_id === m.id)
+      })).join("");
+    }
+    document.querySelectorAll("[data-qr]").forEach(el => { try { pintarQR(el, el.dataset.qr, 240, "#000000", "#F1F4EA"); } catch {} });
+  } catch (e) {
+    main.innerHTML = `<p class="nada">No se pudo armar (${esc(e.message)}).</p>`;
+  }
+}
+armar();
+</script>
+</body>
+</html>

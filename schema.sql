@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS members (
   photo_key   TEXT NOT NULL DEFAULT '',
   available   INTEGER NOT NULL DEFAULT 1,
   status_note TEXT NOT NULL DEFAULT '',
+  whatsapp    TEXT NOT NULL DEFAULT '',
+  store       TEXT NOT NULL DEFAULT '',
   pass_hash   TEXT NOT NULL,
   is_admin    INTEGER NOT NULL DEFAULT 0,
   sort        INTEGER NOT NULL DEFAULT 0,
@@ -66,3 +68,17 @@ CREATE TABLE IF NOT EXISTS join_requests (
 CREATE INDEX IF NOT EXISTS idx_dates_day ON dates(day);
 CREATE INDEX IF NOT EXISTS idx_drops_day ON drops(day);
 CREATE INDEX IF NOT EXISTS idx_tracks_member ON tracks(member_id);
+
+CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT '');
+CREATE TABLE IF NOT EXISTS services (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, member_id INTEGER NOT NULL,
+  name TEXT NOT NULL, price TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, member_id INTEGER NOT NULL,
+  text TEXT NOT NULL DEFAULT '', image_key TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS gallery (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, member_id INTEGER NOT NULL DEFAULT 0,
+  image_key TEXT NOT NULL, caption TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')));

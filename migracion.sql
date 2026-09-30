@@ -1,0 +1,16 @@
+-- Migración v5: se corre UNA sola vez sobre la base existente.
+ALTER TABLE members ADD COLUMN whatsapp TEXT NOT NULL DEFAULT '';
+ALTER TABLE members ADD COLUMN store TEXT NOT NULL DEFAULT '';
+CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT '');
+CREATE TABLE IF NOT EXISTS services (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, member_id INTEGER NOT NULL,
+  name TEXT NOT NULL, price TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, member_id INTEGER NOT NULL,
+  text TEXT NOT NULL DEFAULT '', image_key TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS gallery (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, member_id INTEGER NOT NULL DEFAULT 0,
+  image_key TEXT NOT NULL, caption TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')));

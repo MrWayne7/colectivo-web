@@ -46,7 +46,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .bar__id [data-nombre]{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .rec{flex:0 0 auto;width:.75rem;height:.75rem;border-radius:50%;background:var(--rec);box-shadow:0 0 14px var(--rec);animation:blink var(--beat) steps(1) infinite}
 .rec.off{animation:none;background:var(--gris);box-shadow:none}
-.bar__live{font-family:var(--texto);font-size:.75rem;font-weight:700;letter-spacing:.06em;color:var(--rec)}
+.bar__izq{display:flex;align-items:center;gap:.75rem;min-width:0}
+.bar__live{font-family:var(--texto);font-size:.75rem;font-weight:700;letter-spacing:.06em;color:var(--rec);text-decoration:none;border:2px solid var(--rec);padding:.15rem .5rem;white-space:nowrap}
+.bar__live:hover{background:var(--rec);color:#fff}
 .bar__nav{display:flex;flex-shrink:0;gap:1.25rem;font-weight:500}
 .bar__nav a{text-decoration:none;padding:.25rem 0;border-bottom:2px solid transparent}
 .bar__nav a:hover{border-color:var(--verde)}
@@ -186,7 +188,8 @@ body.has-player{padding-bottom:5.5rem}
   .bar__menu{display:inline-block}
   .bar__der{gap:.5rem}
   .bar__id{font-size:1.15rem;flex:1 1 auto}
-  .bar__live{display:none}
+  .bar__izq{flex:1 1 auto}
+  .bar__live{font-size:.7rem;padding:.1rem .4rem}
   .sec{padding:2.75rem 1rem 3.5rem}
 }
 

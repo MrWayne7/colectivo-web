@@ -38,6 +38,11 @@ main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
 .clave{font-family:ui-monospace,Menlo,monospace;background:var(--musgo);padding:.2rem .5rem;user-select:all}
 .fila{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
 .msg:empty{display:none}
+.grid-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(9rem,1fr));gap:.75rem}
+.grid-fotos figure{margin:0;border:2px solid var(--linea)}
+.grid-fotos img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.grid-fotos figcaption{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.4rem .5rem;font-size:.8rem;color:var(--gris)}
+.item .destacado{font-size:.7rem;font-weight:700;background:var(--verde);color:var(--negro);padding:.1rem .4rem;margin-left:.5rem;vertical-align:middle;font-family:var(--texto)}
 @media (max-width:640px){
   main{padding:1.25rem 1rem 5rem}
   .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -1rem;padding:0 1rem 1rem}
@@ -89,12 +94,25 @@ main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
       <button data-tab="fechas">Fechas</button>
       <button data-tab="drops">Drops</button>
       <button data-tab="musica">Música</button>
+      <button data-tab="servicios">Servicios</button>
+      <button data-tab="bitacora">Bitácora</button>
+      <button data-tab="galeria">Galería</button>
       <button data-tab="clave">Contraseña</button>
       <button data-tab="integrantes" class="solo-admin oculto">Integrantes</button>
       <button data-tab="solicitudes" class="solo-admin oculto">Solicitudes</button>
+      <button data-tab="sitio" class="solo-admin oculto">Sitio</button>
     </nav>
 
     <div class="tab on" id="t-perfil">
+      <form class="form" id="f-live" style="border:2px solid var(--rec);padding:1rem">
+        <label class="toggle"><input type="checkbox" name="on"><span><b style="color:var(--rec)">EN SESIÓN</b> — enciende el punto rojo del sitio (se apaga solo a las 8 horas)</span></label>
+        <div class="form form--2" style="margin-top:.25rem">
+          <label class="campo"><span>Qué está pasando</span><input name="text" maxlength="120" placeholder="Grabando con Daqian en el estudio"></label>
+          <label class="campo"><span>Link (live de IG, Twitch…)</span><input name="url" maxlength="300"></label>
+        </div>
+        <div class="msg" id="m-live"></div>
+        <div><button class="btn btn--peq" type="submit">Publicar estado</button></div>
+      </form>
       <div class="foto">
         <div class="foto__pre" id="foto-pre"></div>
         <div class="campo" style="flex:1;min-width:14rem">
@@ -114,6 +132,8 @@ main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
         <label class="campo ancho"><span>Links (uno por línea: Nombre | URL)</span><textarea name="links" placeholder="Instagram | https://instagram.com/tuusuario&#10;Spotify | https://open.spotify.com/artist/…"></textarea></label>
         <label class="toggle ancho"><input type="checkbox" name="available"><span>Estoy disponible y acepto trabajos</span></label>
         <label class="campo ancho"><span>Nota de estado (opcional)</span><input name="status_note" maxlength="160" placeholder="Libre para producciones en octubre / En gira hasta diciembre"></label>
+        <label class="campo"><span>WhatsApp para trabajos (con indicativo, ej. 573001234567)</span><input name="whatsapp" maxlength="20" inputmode="numeric" placeholder="si lo dejas vacío, usan el del colectivo"></label>
+        <label class="campo"><span>Tienda de beats o de merch (URL)</span><input name="store" maxlength="300" placeholder="https://beatstars.com/…"></label>
         <div class="ancho msg" id="m-perfil"></div>
         <div class="ancho"><button class="btn btn--fill" type="submit">Guardar cambios</button></div>
       </form>
@@ -157,6 +177,40 @@ main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
       <div class="lista" id="l-tracks"></div>
     </div>
 
+    <div class="tab" id="t-servicios">
+      <p style="color:var(--gris)">Lo que ofreces y desde cuánto. Aparece en tu página y en la sección Servicios del sitio, con un botón que abre WhatsApp con el mensaje listo.</p>
+      <form class="form form--2" id="f-servicio">
+        <label class="campo"><span>Servicio</span><input name="name" required maxlength="80" placeholder="Beat exclusivo, mezcla, DJ set, video…"></label>
+        <label class="campo"><span>Desde (precio)</span><input name="price" maxlength="40" placeholder="300.000 COP"></label>
+        <label class="campo ancho"><span>Nota</span><input name="note" maxlength="200" placeholder="qué incluye, tiempos, condiciones"></label>
+        <div class="ancho msg" id="m-servicio"></div>
+        <div class="ancho"><button class="btn btn--fill" type="submit">Publicar servicio</button></div>
+      </form>
+      <div class="lista" id="l-servicios"></div>
+    </div>
+
+    <div class="tab" id="t-bitacora">
+      <p style="color:var(--gris)">Notas cortas del estudio, con o sin foto. Salen en el inicio, las más nuevas primero.</p>
+      <form class="form" id="f-post">
+        <label class="campo"><span>Qué pasó</span><textarea name="text" maxlength="600" placeholder="Hoy grabamos coros con Daqian y salió una joya…"></textarea></label>
+        <label class="campo"><span>Foto (opcional)</span><input name="file" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+        <div class="msg" id="m-post"></div>
+        <div><button class="btn btn--fill" type="submit">Publicar nota</button></div>
+      </form>
+      <div class="lista" id="l-posts"></div>
+    </div>
+
+    <div class="tab" id="t-galeria">
+      <p style="color:var(--gris)">Tus fotos. Salen en tu página y en la galería del inicio.</p>
+      <form class="form form--2" id="f-galeria">
+        <label class="campo"><span>Foto (JPG, PNG o WEBP, máx. 6 MB)</span><input name="file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required></label>
+        <label class="campo"><span>Pie de foto (opcional)</span><input name="caption" maxlength="160"></label>
+        <div class="ancho msg" id="m-galeria"></div>
+        <div class="ancho"><button class="btn btn--fill" type="submit">Subir foto</button></div>
+      </form>
+      <div class="grid-fotos" id="l-galeria"></div>
+    </div>
+
     <div class="tab" id="t-clave">
       <form class="form" id="f-clave" style="max-width:26rem">
         <label class="campo"><span>Contraseña actual</span><input name="current" type="password" required autocomplete="current-password"></label>
@@ -179,6 +233,27 @@ main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
         <div class="ancho"><button class="btn btn--fill" type="submit">Crear canal</button></div>
       </form>
       <div class="lista" id="l-integrantes"></div>
+    </div>
+
+    <div class="tab" id="t-sitio">
+      <h2 class="h3">Video del inicio</h2>
+      <p style="color:var(--gris)">Un loop corto y mudo detrás del nombre. MP4 H.264, 1080p, 5–15 s, máx. 40 MB.</p>
+      <form class="form form--2" id="f-hero">
+        <label class="campo"><span>Video</span><input name="file" type="file" accept="video/mp4,video/webm,video/quicktime" required></label>
+        <div class="fila" style="align-self:end"><button class="btn btn--fill" type="submit">Subir video</button><button class="btn btn--gris" type="button" id="hero-quitar">Quitar</button></div>
+        <div class="ancho msg" id="m-hero"></div>
+        <div class="ancho"><div class="progreso oculto" id="prog-hero"><i></i></div></div>
+      </form>
+      <h2 class="h3" style="margin-top:1rem">Galería del colectivo</h2>
+      <form class="form form--2" id="f-galeria-c">
+        <label class="campo"><span>Foto</span><input name="file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required></label>
+        <label class="campo"><span>Pie de foto</span><input name="caption" maxlength="160"></label>
+        <div class="ancho msg" id="m-galeria-c"></div>
+        <div class="ancho"><button class="btn btn--fill" type="submit">Subir foto</button></div>
+      </form>
+      <div class="grid-fotos" id="l-galeria-c"></div>
+      <h2 class="h3" style="margin-top:1rem">Bitácora de todos</h2>
+      <div class="lista" id="l-posts-todos"></div>
     </div>
 
     <div class="tab" id="t-solicitudes">
@@ -231,8 +306,8 @@ function entrar() {
   $("#hola").textContent = ME.alias;
   $("#hola-sub").innerHTML = `Tu página pública: <a href="/m/${esc(ME.slug)}" target="_blank" rel="noopener" style="color:var(--acento)">/m/${esc(ME.slug)}</a>${ME.is_admin ? ' <span class="badge">admin</span>' : ""}`;
   $$(".solo-admin").forEach(b => b.classList.toggle("oculto", !ME.is_admin));
-  llenarPerfil(); cargarFechas(); cargarDrops(); cargarTracks();
-  if (ME.is_admin) { cargarIntegrantes(); cargarSolicitudes(); }
+  llenarPerfil(); cargarFechas(); cargarDrops(); cargarTracks(); cargarServicios(); cargarPosts(); cargarGaleria(); cargarLive();
+  if (ME.is_admin) { cargarIntegrantes(); cargarSolicitudes(); cargarGaleriaC(); cargarPostsTodos(); }
 }
 $("#tabs").addEventListener("click", e => {
   const b = e.target.closest("[data-tab]"); if (!b) return;
@@ -261,6 +336,7 @@ function llenarPerfil() {
   f.bio.value = ME.bio || ""; f.tags.value = (ME.tags || []).join(", ");
   f.links.value = (ME.links || []).map(l => `${l.nombre} | ${l.url}`).join("\n");
   f.available.checked = !!ME.available; f.status_note.value = ME.status_note || "";
+  f.whatsapp.value = ME.whatsapp || ""; f.store.value = ME.store || "";
   pintarFoto();
 }
 function pintarFoto() {
@@ -274,7 +350,7 @@ $("#f-perfil").addEventListener("submit", e => { e.preventDefault(); enviar(e.ta
     alias: v.alias, role: v.role, specialty: v.specialty, city: v.city, bio: v.bio,
     tags: v.tags.split(",").map(s => s.trim()).filter(Boolean),
     links: v.links.split("\n").map(l => { const [nombre, ...rest] = l.split("|"); return { nombre: (nombre || "").trim(), url: rest.join("|").trim() }; }).filter(l => l.nombre && l.url),
-    available: e.target.available.checked, status_note: v.status_note
+    available: e.target.available.checked, status_note: v.status_note, whatsapp: v.whatsapp, store: v.store
   };
   ME = (await api("/me", { method: "PUT", body: JSON.stringify(body) })).me;
   $("#hola").textContent = ME.alias;
@@ -318,14 +394,18 @@ $("#f-drop").addEventListener("submit", e => { e.preventDefault(); enviar(e.targ
 }, "m-drop"); });
 
 /* ---------- música ---------- */
+let FEATURED = 0;
 function pintarTracks(items) {
   $("#l-tracks").innerHTML = items.length ? items.map(t => `
-    <div class="item"><div><div class="item__t">${esc(t.title)}</div><div class="item__s">${esc(t.artists)}${t.duration ? " · " + fmt(t.duration) : ""}</div></div>
-    <div class="item__acc"><button class="btn btn--peq btn--gris" data-del="tracks" data-id="${t.id}">Eliminar</button></div>
+    <div class="item"><div><div class="item__t">${esc(t.title)}${t.id === FEATURED ? '<span class="destacado">track de la semana</span>' : ""}</div><div class="item__s">${esc(t.artists)}${t.duration ? " · " + fmt(t.duration) : ""}</div></div>
+    <div class="item__acc"><button class="btn btn--peq" data-feat="${t.id === FEATURED ? 0 : t.id}">${t.id === FEATURED ? "Quitar destacado" : "Destacar"}</button><button class="btn btn--peq btn--gris" data-del="tracks" data-id="${t.id}">Eliminar</button></div>
     <audio controls preload="none" src="${esc(t.url)}"></audio></div>`).join("")
     : `<p class="empty">No has subido música. Lo que subas suena en la radio del sitio.</p>`;
 }
-async function cargarTracks() { pintarTracks((await api("/me/tracks")).items); }
+async function cargarTracks() {
+  try { FEATURED = (await fetch("/api/public").then(r => r.json())).featured_track || 0; } catch {}
+  pintarTracks((await api("/me/tracks")).items);
+}
 const duracionDe = file => new Promise(res => {
   const a = new Audio(); const u = URL.createObjectURL(file);
   a.addEventListener("loadedmetadata", () => { res(Math.round(a.duration || 0)); URL.revokeObjectURL(u); });
@@ -354,11 +434,84 @@ document.addEventListener("click", async e => {
   if (!confirm("¿Eliminar? No se puede deshacer.")) return;
   const tabla = b.dataset.del, id = b.dataset.id, admin = b.dataset.admin;
   try {
-    if (admin) { await api(`/admin/${tabla}/${id}`, { method: "DELETE" }); tabla === "joins" ? cargarSolicitudes() : cargarIntegrantes(); return; }
+    if (admin) {
+      await api(`/admin/${tabla}/${id}`, { method: "DELETE" });
+      ({ joins: cargarSolicitudes, members: cargarIntegrantes, posts: cargarPostsTodos, gallery: cargarGaleriaC })[tabla]();
+      return;
+    }
     const d = await api(`/me/${tabla}/${id}`, { method: "DELETE" });
-    ({ dates: pintarFechas, drops: pintarDrops, tracks: pintarTracks })[tabla](d.items);
+    ({ dates: pintarFechas, drops: pintarDrops, tracks: pintarTracks, services: pintarServicios, posts: pintarPosts, gallery: pintarGaleria })[tabla](d.items);
   } catch (err) { alert(err.message); }
 });
+
+/* ---------- en sesión ---------- */
+async function cargarLive() {
+  try {
+    const d = await fetch("/api/public").then(r => r.json()); const f = $("#f-live");
+    f.on.checked = !!d.live; if (d.live) { f.text.value = d.live.text || ""; f.url.value = d.live.url || ""; }
+    aviso("m-live", d.live ? `Encendido por ${d.live.by}. Se apaga solo a las 8 horas.` : "");
+  } catch {}
+}
+$("#f-live").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  const v = form(e.target); v.on = e.target.on.checked;
+  const d = await api("/me/live", { method: "PUT", body: JSON.stringify(v) });
+  aviso("m-live", d.live ? "El sitio ya muestra EN SESIÓN." : "Apagado.");
+}, "m-live"); });
+
+/* ---------- servicios ---------- */
+function pintarServicios(items) {
+  $("#l-servicios").innerHTML = items.length ? items.map(x => `
+    <div class="item"><div><div class="item__t">${esc(x.name)}</div><div class="item__s">${esc([x.price ? "desde " + x.price : "", x.note].filter(Boolean).join(" · "))}</div></div>
+    <div class="item__acc"><button class="btn btn--peq btn--gris" data-del="services" data-id="${x.id}">Eliminar</button></div></div>`).join("")
+    : `<p class="empty">No has publicado servicios.</p>`;
+}
+async function cargarServicios() { pintarServicios((await api("/me/services")).items); }
+$("#f-servicio").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  pintarServicios((await api("/me/services", { method: "POST", body: JSON.stringify(form(e.target)) })).items);
+  e.target.reset(); aviso("m-servicio", "Servicio publicado.");
+}, "m-servicio"); });
+
+/* ---------- bitácora ---------- */
+const postHtml = (p, admin) => `
+    <div class="item"><div>${p.image ? `<img src="${esc(p.image)}" alt="" style="max-width:12rem;display:block;margin-bottom:.4rem;border:2px solid var(--linea)">` : ""}<div class="item__s" style="color:var(--tinta)">${esc(p.text)}</div><div class="item__s">${admin ? esc(p.member) + " · " : ""}${esc(p.created_at)}</div></div>
+    <div class="item__acc"><button class="btn btn--peq btn--gris" data-del="posts" data-id="${p.id}" ${admin ? 'data-admin="1"' : ""}>Eliminar</button></div></div>`;
+function pintarPosts(items) { $("#l-posts").innerHTML = items.length ? items.map(p => postHtml(p, false)).join("") : `<p class="empty">Todavía no has escrito nada.</p>`; }
+async function cargarPosts() { pintarPosts((await api("/me/posts")).items); }
+$("#f-post").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  const fd = new FormData(e.target);
+  pintarPosts((await api("/me/posts", { method: "POST", body: fd })).items);
+  e.target.reset(); aviso("m-post", "Publicado en la bitácora.");
+}, "m-post"); });
+async function cargarPostsTodos() { $("#l-posts-todos").innerHTML = (await api("/admin/posts")).items.map(p => postHtml(p, true)).join("") || `<p class="empty">Nada todavía.</p>`; }
+
+/* ---------- galería ---------- */
+const galHtml = (g, admin) => `<figure><img src="${esc(g.url)}" alt="${esc(g.caption)}" loading="lazy"><figcaption><span>${esc(g.caption || "")}</span><button class="btn btn--peq btn--gris" data-del="gallery" data-id="${g.id}" ${admin ? 'data-admin="1"' : ""}>×</button></figcaption></figure>`;
+function pintarGaleria(items) { $("#l-galeria").innerHTML = items.length ? items.map(g => galHtml(g, false)).join("") : `<p class="empty">Sin fotos todavía.</p>`; }
+async function cargarGaleria() { pintarGaleria((await api("/me/gallery")).items); }
+$("#f-galeria").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  pintarGaleria((await api("/me/gallery", { method: "POST", body: new FormData(e.target) })).items);
+  e.target.reset(); aviso("m-galeria", "Foto subida.");
+}, "m-galeria"); });
+async function cargarGaleriaC() { $("#l-galeria-c").innerHTML = (await api("/admin/gallery")).items.map(g => galHtml(g, true)).join("") || `<p class="empty">Sin fotos del colectivo.</p>`; }
+$("#f-galeria-c").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  await api("/admin/gallery", { method: "POST", body: new FormData(e.target) });
+  e.target.reset(); aviso("m-galeria-c", "Foto subida."); cargarGaleriaC();
+}, "m-galeria-c"); });
+
+/* ---------- video del hero ---------- */
+$("#f-hero").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
+  const file = e.target.file.files[0]; if (!file) throw new Error("Elige un video");
+  const fd = new FormData(); fd.append("file", file);
+  const prog = $("#prog-hero"), barra = $("#prog-hero i"); prog.classList.remove("oculto"); barra.style.width = "0";
+  await new Promise((res, rej) => {
+    const x = new XMLHttpRequest(); x.open("POST", "/api/admin/hero");
+    x.upload.onprogress = ev => { if (ev.lengthComputable) barra.style.width = Math.round(ev.loaded / ev.total * 100) + "%"; };
+    x.onload = () => { let d = {}; try { d = JSON.parse(x.responseText); } catch {} x.status < 300 ? res(d) : rej(new Error(d.error || "Error " + x.status)); };
+    x.onerror = () => rej(new Error("Se cortó la subida")); x.send(fd);
+  });
+  prog.classList.add("oculto"); e.target.reset(); aviso("m-hero", "Video puesto. Míralo en el inicio.");
+}, "m-hero").then(() => $("#prog-hero").classList.add("oculto")); });
+$("#hero-quitar").addEventListener("click", async () => { try { await api("/admin/hero", { method: "DELETE" }); aviso("m-hero", "Video quitado."); } catch (e) { aviso("m-hero", e.message, true); } });
 
 /* ---------- contraseña ---------- */
 $("#f-clave").addEventListener("submit", e => { e.preventDefault(); enviar(e.target, async () => {
@@ -393,6 +546,8 @@ $("#f-nuevo").addEventListener("submit", e => { e.preventDefault(); enviar(e.tar
   e.target.reset(); delete $("#f-nuevo [name=slug]").dataset.tocado;
 }, "m-nuevo"); });
 document.addEventListener("click", async e => {
+  const f = e.target.closest("[data-feat]");
+  if (f) { try { const d = await api("/me/featured", { method: "PUT", body: JSON.stringify({ track_id: f.dataset.feat }) }); FEATURED = d.featured_track; pintarTracks((await api("/me/tracks")).items); } catch (err) { alert(err.message); } return; }
   const p = e.target.closest("[data-pass]"), a = e.target.closest("[data-admin][data-val]");
   try {
     if (p) { const pass = prompt("Nueva contraseña (mínimo 8). Anótala para pasársela:", genPass()); if (!pass) return; pintarIntegrantes((await api(`/admin/members/${p.dataset.pass}`, { method: "PUT", body: JSON.stringify({ password: pass }) })).items); alert("Contraseña cambiada a: " + pass); }

@@ -6,7 +6,7 @@ window.SITE = {
   comunidad: "",                    // link del grupo de WhatsApp o Telegram (opcional, aparece en Únete)
   tagline: "Músicos, productores, directores y artistas haciendo cosas juntos desde Bogotá.",
   radio: "Radio Colectivo",         // nombre de la estación
-  enSesion: true,                   // true = punto rojo parpadeando en la barra
+  spotifyPlaylist: "",              // link de la playlist oficial en Spotify (opcional, se embebe junto a la radio)
   bpm: 124,                         // el punto rojo late a este tempo
   email: "hola@colectivo.com",
   whatsapp: "573001234567",         // solo números, con indicativo de país
@@ -14,6 +14,5 @@ window.SITE = {
     { nombre: "Instagram", url: "https://instagram.com/" },
     { nombre: "YouTube",   url: "https://youtube.com/" },
     { nombre: "Spotify",   url: "https://open.spotify.com/" }
-  ],
-  creditoUrl: ""                    // URL de tu portafolio para el "hecho por BASHI"
+  ]
 };

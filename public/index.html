@@ -36,6 +36,50 @@
 .hero__hint{position:relative;margin-top:.75rem;font-size:.85rem;color:var(--gris)}
 .hero__hint b{color:var(--acento);font-weight:500}
 
+.hero__video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5;filter:grayscale(1) contrast(1.1)}
+[data-theme="light"] .hero__video{opacity:.35}
+.hero__live{position:relative;display:flex;align-items:flex-start;gap:.5rem;margin-bottom:1rem;font-weight:700;color:var(--rec);font-size:.9rem;letter-spacing:.04em;text-transform:uppercase;max-width:40ch}
+.hero__live::before{content:"";flex:0 0 auto;margin-top:.35em;width:.6rem;height:.6rem;border-radius:50%;background:var(--rec);box-shadow:0 0 10px var(--rec);animation:blink var(--beat) steps(1) infinite}
+.hero__live a{color:inherit}
+.semana{position:relative;align-self:flex-start;display:inline-flex;align-items:center;gap:.8rem;margin-top:1.5rem;padding:.5rem .8rem .5rem .5rem;border:2px solid var(--verde);background:var(--fondo)}
+.semana small{display:block;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--acento)}
+.semana b{font-family:var(--display);font-weight:400;font-size:1.2rem;text-transform:uppercase;line-height:1}
+.semana__play{width:2.6rem;height:2.6rem;border:0;background:var(--verde);color:var(--negro);cursor:pointer;font-size:1rem}
+.cables__leyenda{margin-top:.5rem;font-size:.85rem;color:var(--negro);opacity:.75}
+.strips{position:relative}
+.cables{position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:2}
+.cables path{fill:none;stroke:var(--negro);stroke-width:3;stroke-linecap:round;opacity:.85;transition:opacity .2s,stroke .2s}
+.cables circle{fill:var(--negro)}
+.strips.cable-hover .cables path{opacity:.12}
+.strips.cable-hover .cables path.on{opacity:1;stroke:var(--rec)}
+.strip__colabs{display:none;font-size:.75rem;color:var(--negro);opacity:.8}
+.servicios{display:flex;flex-direction:column;border-top:1px solid var(--linea)}
+.servicio{display:grid;grid-template-columns:1fr auto auto;gap:1rem;align-items:center;padding:1rem .25rem;border-bottom:1px solid var(--linea)}
+.servicio__n{font-family:var(--display);font-size:clamp(1.4rem,3.4vw,2.4rem);line-height:1;text-transform:uppercase}
+.servicio__q{display:block;font-family:var(--texto);font-size:.9rem;color:var(--gris);text-transform:none;margin-top:.3rem}
+.servicio__p{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--gris)}
+.servicio__p b{display:block;color:var(--tinta);font-weight:700}
+@media (max-width:640px){.servicio{grid-template-columns:1fr auto}.servicio__p{grid-column:1;text-align:left}}
+.playlist{margin-top:2.5rem}
+.playlist iframe{width:100%;height:352px;border:0;border-radius:12px;margin-top:1rem}
+.posts{display:grid;grid-template-columns:repeat(auto-fill,minmax(17rem,1fr));gap:1rem}
+.post{border:2px solid var(--linea);display:flex;flex-direction:column}
+.post img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:zoom-in}
+.post__t{padding:1rem;font-size:1.05rem;flex:1}
+.post__m{padding:0 1rem 1rem;font-size:.85rem;color:var(--gris)}
+.post__m a{color:var(--acento);text-decoration:none;font-weight:600}
+.galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.6rem}
+.galeria button{border:0;padding:0;background:var(--musgo);cursor:zoom-in;aspect-ratio:1;overflow:hidden}
+.galeria img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.galeria button:hover img{transform:scale(1.04)}
+.lightbox{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:1rem;gap:.75rem}
+.lightbox.open{display:flex}
+.lightbox img{max-width:100%;max-height:82vh;object-fit:contain}
+.lightbox p{color:#fff;font-size:.9rem;text-align:center}
+.lightbox__close{position:absolute;top:1rem;right:1rem;background:none;border:2px solid var(--verde);color:var(--verde);width:2.6rem;height:2.6rem;font-size:1.4rem;cursor:pointer}
+.date__cal{font-size:.85rem;color:var(--acento);text-decoration:none;font-weight:600;white-space:nowrap}
+.date__cal:hover{text-decoration:underline}
+
 /* consola */
 .console{background:var(--verde);color:var(--negro)}
 .console .sec__intro{color:var(--negro)}
@@ -75,7 +119,7 @@
   .lineup a{font-size:calc(var(--base) * 1.25 * var(--k,1))}
   .hero__tag{font-size:1rem}
   .strips{flex-direction:column;overflow:visible;gap:.75rem;scroll-snap-type:none}
-  .strip{flex:none;max-width:none;display:grid;grid-template-columns:4.5rem 1fr auto;grid-template-areas:"ch ch ch" "av name name" "av role role" "av est est" "fader fader ms";gap:.2rem .75rem;padding:.7rem .75rem .75rem;align-items:start}
+  .strip{flex:none;max-width:none;display:grid;grid-template-columns:4.5rem 1fr auto;grid-template-areas:"ch ch ch" "av name name" "av role role" "av est est" "colabs colabs colabs" "fader fader ms";gap:.2rem .75rem;padding:.7rem .75rem .75rem;align-items:start}
   .strip__ch{grid-area:ch;margin-bottom:.3rem}
   .strip__go{display:contents}
   .strip__avatar{grid-area:av;font-size:1.7rem;width:4.5rem;align-self:start}
@@ -89,6 +133,9 @@
   .meter{flex-direction:row;height:10px}
   .ms{grid-area:ms;flex-direction:column;justify-content:flex-end;gap:.4rem;align-self:end}
   .ms button{width:3rem;height:2.5rem;padding:0}
+  .strip__colabs{display:block;grid-area:colabs}
+  .cables,.cables__leyenda{display:none!important}
+  .semana{margin-top:1rem}
   .strip__go:hover .strip__name{text-decoration:none}
   .strip__go .strip__name{text-decoration:underline;text-decoration-color:var(--negro);text-decoration-thickness:2px;text-underline-offset:3px}
 }
@@ -137,12 +184,17 @@
 <body>
 
 <header class="bar">
-  <a class="bar__id" href="#inicio"><span class="rec" aria-hidden="true"></span><span data-nombre></span><span class="bar__live" data-live>EN SESIÓN</span></a>
+  <div class="bar__izq">
+    <a class="bar__id" href="#inicio"><span class="rec off" aria-hidden="true"></span><span data-nombre></span></a>
+    <a class="bar__live oculto" id="bar-live" target="_blank" rel="noopener">EN SESIÓN</a>
+  </div>
   <nav class="bar__nav" aria-label="Secciones">
     <a href="#consola">Consola</a>
     <a href="#radio">Radio</a>
+    <a href="#servicios" data-sec="servicios" class="oculto">Servicios</a>
     <a href="#drops">Drops</a>
     <a href="#fechas">Fechas</a>
+    <a href="#bitacora" data-sec="bitacora" class="oculto">Bitácora</a>
     <a href="#unirse">Unirse</a>
   </nav>
   <div class="bar__der">
@@ -154,18 +206,24 @@
   <button class="menu__close" id="menu-close" aria-label="Cerrar">×</button>
   <a href="#consola">Consola</a>
   <a href="#radio">Radio</a>
+  <a href="#servicios" data-sec="servicios" class="oculto">Servicios</a>
   <a href="#drops">Drops</a>
   <a href="#fechas">Fechas</a>
+  <a href="#bitacora" data-sec="bitacora" class="oculto">Bitácora</a>
+  <a href="#galeria" data-sec="galeria" class="oculto">Galería</a>
   <a href="#unirse">Únete</a>
   <a href="#booking">Booking</a>
-  <div class="menu__foot"><a href="/panel">Entrar al panel</a><a href="#" data-tema-txt></a></div>
+  <div class="menu__foot"><a href="/panel">Entrar al panel</a><a href="/vivo">Modo escenario</a><a href="#" data-tema-txt></a></div>
 </nav>
 
 <main>
   <section class="hero" id="inicio">
+    <video class="hero__video oculto" id="hero-video" autoplay muted loop playsinline aria-hidden="true"></video>
     <canvas id="scope" aria-hidden="true"></canvas>
+    <p class="hero__live oculto" id="hero-live"></p>
     <h1 class="hero__name"><span data-nombre></span></h1>
     <p class="hero__tag" data-tagline></p>
+    <div class="semana oculto" id="semana"><button class="semana__play" type="button" aria-label="Reproducir">&#9654;</button><span><small>Track de la semana</small><b id="semana-t"></b></span></div>
     <div class="lineup" id="lineup" aria-label="Integrantes"></div>
     <p class="hero__hint" id="hint">Toca un nombre para ver su página. Dale play a la <b>radio</b> y la señal cobra vida.</p>
   </section>
@@ -176,6 +234,15 @@
       <p class="sec__intro">Cada canal es una persona. Toca la foto o el nombre para abrir su página; S para un vistazo rápido, M para silenciar.</p>
     </div>
     <div class="strips" id="strips"></div>
+    <p class="cables__leyenda oculto" id="cables-leyenda">Los cables unen a quienes han sacado algo juntos. Pasa el cursor por un canal.</p>
+  </section>
+
+  <section class="sec oculto" id="servicios">
+    <div class="sec__head">
+      <h2 class="h2">Servicios</h2>
+      <p class="sec__intro">Lo que hacemos por encargo. Precios desde; el botón abre WhatsApp con el mensaje listo.</p>
+    </div>
+    <div class="servicios" id="servicios-lista"></div>
   </section>
 
   <section class="sec sec--inv" id="radio">
@@ -187,6 +254,7 @@
       </div>
     </div>
     <div class="radio-list" id="radio-list"></div>
+    <div class="playlist oculto" id="playlist"><h3 class="h3">También en Spotify</h3><iframe id="playlist-frame" loading="lazy" title="Playlist en Spotify" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe></div>
   </section>
 
   <section class="sec" id="drops">
@@ -203,6 +271,22 @@
       <p class="sec__intro">Dónde vamos a estar tocando, pinchando o grabando.</p>
     </div>
     <div class="dates" id="dates"></div>
+  </section>
+
+  <section class="sec oculto" id="bitacora">
+    <div class="sec__head">
+      <h2 class="h2">Bitácora</h2>
+      <p class="sec__intro">Lo que va pasando en el estudio, contado por nosotros.</p>
+    </div>
+    <div class="posts" id="posts"></div>
+  </section>
+
+  <section class="sec oculto" id="galeria">
+    <div class="sec__head">
+      <h2 class="h2">Galería</h2>
+      <p class="sec__intro">Sesiones, shows y lo que pasa entre medias.</p>
+    </div>
+    <div class="galeria" id="galeria-grid"></div>
   </section>
 
   <section class="sec" id="unirse">
@@ -236,6 +320,7 @@
 </main>
 
 <div class="scrim" id="scrim"></div>
+<div class="lightbox" id="lightbox" role="dialog" aria-label="Foto"><button class="lightbox__close" id="lightbox-close" aria-label="Cerrar">×</button><img alt=""><p></p></div>
 <aside class="panel" id="panel" aria-hidden="true" aria-label="Canal">
   <div class="panel__top"><span data-p-ch></span><button class="panel__close" id="panel-close" aria-label="Cerrar">×</button></div>
   <div class="panel__photo" data-p-photo></div>
@@ -256,7 +341,7 @@
 <footer class="foot">
   <span data-copy></span>
   <nav id="foot-social" aria-label="Redes"></nav>
-  <span><a href="/panel">Entrar</a> · Sitio hecho por <a href="#" data-credit>BASHI</a></span>
+  <span><a href="/panel">Entrar</a></span>
 </footer>
 
 <script src="/radio.js"></script>
@@ -277,15 +362,13 @@ document.documentElement.style.setProperty("--beat", (60 / SITE.bpm) + "s");
 $$("[data-nombre]").forEach(el => el.textContent = SITE.nombre);
 $("[data-tagline]").textContent = SITE.tagline;
 $("[data-radio-nombre]").textContent = SITE.radio;
-$("[data-live]").style.display = SITE.enSesion ? "" : "none";
-$(".rec").classList.toggle("off", !SITE.enSesion);
+if (SITE.spotifyPlaylist) { const m = String(SITE.spotifyPlaylist).match(/playlist\/([A-Za-z0-9]+)/); if (m) { $("#playlist").classList.remove("oculto"); $("#playlist-frame").src = `https://open.spotify.com/embed/playlist/${m[1]}?theme=0`; } }
 const mail = $("[data-mail]"); mail.textContent = SITE.email; mail.href = "mailto:" + SITE.email;
 $("#booking-row").innerHTML =
   (SITE.whatsapp ? `<a class="btn btn--fill" href="https://wa.me/${SITE.whatsapp}" target="_blank" rel="noopener">WhatsApp</a>` : "") +
   SITE.redes.map(r => `<a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.nombre)}</a>`).join("");
 $("#foot-social").innerHTML = SITE.redes.map(r => `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.nombre)}</a>`).join("");
 $("[data-copy]").textContent = `© ${new Date().getFullYear()} ${SITE.nombre}`;
-$("[data-credit]").href = SITE.creditoUrl || "#";
 if (SITE.comunidad) { $("#comunidad").classList.remove("oculto"); $("#comunidad a").href = SITE.comunidad; }
 
 /* nombre del hero ajustado al ancho */
@@ -313,9 +396,133 @@ async function cargar() {
   }
   MIEMBROS = data.members; TODAY = data.today || TODAY;
   pintarLineup(); pintarConsola(); pintarDrops(data.drops); pintarFechas(data.dates);
+  pintarCables(data.drops); pintarServicios(data.services || []); pintarPosts(data.posts || []); pintarGaleria(data.gallery || []);
+  pintarLive(data.live); pintarHeroVideo(data.hero_video);
+  const feat = Math.max(0, data.tracks.findIndex(t => t.id === data.featured_track));
+  data.tracks.forEach(t => t.featured = t.id === data.featured_track);
   Radio.init({ tracks: data.tracks, listEl: $("#radio-list"), name: SITE.radio });
-  if (data.tracks.length) { const b = $("#radio-play"); b.classList.remove("oculto"); b.onclick = () => Radio.play(0); }
+  if (data.tracks.length) { const b = $("#radio-play"); b.classList.remove("oculto"); b.onclick = () => Radio.play(feat); }
+  if (data.featured_track && data.tracks[feat]) {
+    const t = data.tracks[feat];
+    $("#semana").classList.remove("oculto"); $("#semana-t").textContent = `${t.title} — ${t.artists || t.member}`;
+    $(".semana__play").onclick = () => Radio.play(feat);
+  }
 }
+
+function pintarLive(live) {
+  const bar = $("#bar-live"), hero = $("#hero-live"), dot = $(".rec");
+  if (!live) { bar.classList.add("oculto"); hero.classList.add("oculto"); dot.classList.add("off"); return; }
+  dot.classList.remove("off"); bar.classList.remove("oculto"); bar.href = live.url || "#inicio";
+  if (!live.url) bar.removeAttribute("target");
+  hero.classList.remove("oculto");
+  hero.innerHTML = `<span>${esc(live.text)}${live.url ? ` · <a href="${esc(live.url)}" target="_blank" rel="noopener">verlo en vivo</a>` : ""}</span>`;
+}
+function pintarHeroVideo(url) {
+  const v = $("#hero-video"); if (!url) return;
+  v.src = url; v.classList.remove("oculto");
+  v.play().catch(() => {});
+}
+
+/* cables de colaboración: nacen de los drops con varios artistas */
+const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+function colabsDe(drops) {
+  const idx = new Map(MIEMBROS.map((m, i) => [norm(m.alias), i]));
+  const pares = new Map();
+  drops.forEach(d => {
+    const nombres = String(d.artists || "").split(/\s*(?:,|&|\+|\/|\bft\.?\b|\bfeat\.?\b|\bx\b|\by\b|\bcon\b|\bdir\.?\b)\s*/i).map(norm).filter(Boolean);
+    const ids = [...new Set(nombres.map(n => idx.get(n)).filter(i => i !== undefined))];
+    if (d.member_id) { const own = MIEMBROS.findIndex(m => m.id === d.member_id); if (own >= 0 && !ids.includes(own)) ids.push(own); }
+    for (let a = 0; a < ids.length; a++) for (let b = a + 1; b < ids.length; b++) {
+      const k = [Math.min(ids[a], ids[b]), Math.max(ids[a], ids[b])].join("-");
+      pares.set(k, (pares.get(k) || 0) + 1);
+    }
+  });
+  return [...pares].map(([k, n]) => { const [a, b] = k.split("-").map(Number); return { a, b, n }; });
+}
+function pintarCables(drops) {
+  const pares = colabsDe(drops); if (!pares.length || MIEMBROS.length < 2) return;
+  MIEMBROS.forEach((m, i) => {
+    const otros = pares.filter(p => p.a === i || p.b === i).map(p => MIEMBROS[p.a === i ? p.b : p.a].alias);
+    const strip = $(`.strip[data-i="${i}"]`);
+    if (strip && otros.length) { const el = document.createElement("p"); el.className = "strip__colabs"; el.textContent = "con " + otros.join(", "); $(".strip__role", strip).after(el); }
+  });
+  $("#cables-leyenda").classList.remove("oculto");
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.classList.add("cables");
+  strips.prepend(svg);
+  const dibujar = () => {
+    if (matchMedia("(max-width:640px)").matches) return;
+    const r0 = strips.getBoundingClientRect();
+    svg.setAttribute("width", strips.scrollWidth); svg.setAttribute("height", strips.scrollHeight);
+    svg.style.width = strips.scrollWidth + "px"; svg.style.height = strips.scrollHeight + "px";
+    svg.innerHTML = pares.map(p => {
+      const A = $(`.strip[data-i="${p.a}"] .strip__ch`), B = $(`.strip[data-i="${p.b}"] .strip__ch`); if (!A || !B) return "";
+      const ra = A.getBoundingClientRect(), rb = B.getBoundingClientRect();
+      const x1 = ra.left - r0.left + strips.scrollLeft + ra.width * .82, y1 = ra.top - r0.top + ra.height / 2;
+      const x2 = rb.left - r0.left + strips.scrollLeft + rb.width * .18, y2 = rb.top - r0.top + rb.height / 2;
+      const sag = 40 + Math.min(120, Math.abs(x2 - x1) * .35) + p.n * 10;
+      return `<path data-a="${p.a}" data-b="${p.b}" d="M${x1},${y1} C${x1},${y1 + sag} ${x2},${y2 + sag} ${x2},${y2}"></path><circle cx="${x1}" cy="${y1}" r="5"></circle><circle cx="${x2}" cy="${y2}" r="5"></circle>`;
+    }).join("");
+  };
+  dibujar(); addEventListener("resize", dibujar); document.fonts.ready.then(dibujar);
+  strips.addEventListener("pointerover", e => {
+    const st = e.target.closest(".strip"); if (!st) return;
+    strips.classList.add("cable-hover");
+    $$(".cables path").forEach(pth => pth.classList.toggle("on", pth.dataset.a === st.dataset.i || pth.dataset.b === st.dataset.i));
+  });
+  strips.addEventListener("pointerleave", () => strips.classList.remove("cable-hover"));
+}
+
+/* servicios */
+const waLink = (numero, texto) => `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
+function pintarServicios(items) {
+  if (!items.length) return;
+  $("#servicios").classList.remove("oculto"); $$('[data-sec="servicios"]').forEach(a => a.classList.remove("oculto"));
+  $("#servicios-lista").innerHTML = items.map(x => {
+    const num = x.whatsapp || SITE.whatsapp;
+    const msg = `Hola ${x.alias}, vi tu canal en ${SITE.nombre} y me interesa: ${x.name}`;
+    return `<div class="servicio">
+      <div class="servicio__n">${esc(x.name)}<span class="servicio__q"><a href="/m/${esc(x.slug)}" target="_blank" rel="noopener" style="color:inherit">${esc(x.alias)}</a>${x.note ? " · " + esc(x.note) : ""}</span></div>
+      <div class="servicio__p">${x.price ? `desde<b>${esc(x.price)}</b>` : ""}</div>
+      ${num ? `<a class="btn btn--peq btn--fill" href="${waLink(num, msg)}" target="_blank" rel="noopener">WhatsApp</a>` : ""}
+    </div>`;
+  }).join("");
+}
+
+/* bitácora */
+const fechaCorta = s => { const d = new Date(String(s).replace(" ", "T") + "Z"); return isNaN(d) ? "" : `${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}`; };
+function pintarPosts(items) {
+  if (!items.length) return;
+  $("#bitacora").classList.remove("oculto"); $$('[data-sec="bitacora"]').forEach(a => a.classList.remove("oculto"));
+  $("#posts").innerHTML = items.map(p => `<article class="post">
+    ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" data-zoom="${esc(p.image)}">` : ""}
+    <p class="post__t">${esc(p.text).replace(/\n/g, "<br>")}</p>
+    <p class="post__m"><a href="/m/${esc(p.slug)}" target="_blank" rel="noopener">${esc(p.member)}</a> · ${fechaCorta(p.created_at)}</p>
+  </article>`).join("");
+}
+
+/* galería + lightbox */
+function pintarGaleria(items) {
+  if (!items.length) return;
+  $("#galeria").classList.remove("oculto"); $$('[data-sec="galeria"]').forEach(a => a.classList.remove("oculto"));
+  $("#galeria-grid").innerHTML = items.map(g => `<button type="button" data-zoom="${esc(g.url)}" data-cap="${esc([g.caption, g.member].filter(Boolean).join(" · "))}"><img src="${esc(g.url)}" alt="${esc(g.caption)}" loading="lazy"></button>`).join("");
+}
+const lb = $("#lightbox");
+document.addEventListener("click", e => {
+  const z = e.target.closest("[data-zoom]"); if (!z) return;
+  $("img", lb).src = z.dataset.zoom; $("p", lb).textContent = z.dataset.cap || ""; lb.classList.add("open"); document.body.style.overflow = "hidden";
+});
+const cerrarLb = () => { lb.classList.remove("open"); document.body.style.overflow = ""; };
+$("#lightbox-close").addEventListener("click", cerrarLb);
+lb.addEventListener("click", e => { if (e.target === lb) cerrarLb(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && lb.classList.contains("open")) cerrarLb(); });
+
+/* calendario (.ics) */
+window.icsDe = (d, quien) => {
+  const dt = String(d.day).replace(/-/g, ""), esc2 = s => String(s || "").replace(/[,;]/g, m => "\\" + m);
+  const lineas = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//colectivo//ES", "BEGIN:VEVENT", `UID:fecha-${d.id}@${location.host}`, `DTSTART;VALUE=DATE:${dt}`,
+    `SUMMARY:${esc2((d.title || d.place || "Fecha") + (quien ? " · " + quien : ""))}`, `LOCATION:${esc2([d.place, d.city].filter(Boolean).join(", "))}`, `DESCRIPTION:${esc2([d.note, d.url].filter(Boolean).join(" "))}`, "END:VEVENT", "END:VCALENDAR"];
+  return "data:text/calendar;charset=utf-8," + encodeURIComponent(lineas.join("\r\n"));
+};
 
 function pintarLineup() {
   const sizes = [1.55, .95, 1.25, .85, 1.4, 1.05, 1.2, .9];
@@ -402,7 +609,7 @@ function pintarFechas(dates) {
   <div class="date">
     <div class="date__when"><span class="date__day">${f.dia}</span><span class="date__mon">${f.mes}</span></div>
     <div class="date__where">${esc(donde)}<span class="date__note">${nota}</span></div>
-    ${d.url ? `<a class="date__link" href="${esc(d.url)}" target="_blank" rel="noopener">Info</a>` : ""}
+    <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">${d.url ? `<a class="date__link" href="${esc(d.url)}" target="_blank" rel="noopener">Info</a>` : ""}<a class="date__cal" href="${icsDe(d, d.alias)}" download="fecha-${d.id}.ics">+ Calendario</a></div>
   </div>`;
   }).join("") : `<p class="empty">Sin fechas por ahora. Estamos en el estudio.</p>`;
 }

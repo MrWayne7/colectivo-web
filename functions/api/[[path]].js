@@ -22,6 +22,8 @@ const COOKIE = "colectivo_sesion";
 const SESSION_DAYS = 30;
 const MAX_AUDIO = 30 * 1024 * 1024;
 const MAX_IMG = 6 * 1024 * 1024;
+const MAX_VIDEO = 40 * 1024 * 1024;
+const LIVE_HOURS = 8;
 
 const te = new TextEncoder();
 const json = (data, status = 200, headers = {}) =>
@@ -91,8 +93,28 @@ async function currentMember(env, request) {
 const pubMember = m => ({
   id: m.id, slug: m.slug, alias: m.alias, role: m.role, specialty: m.specialty, city: m.city, bio: m.bio,
   tags: parseJSON(m.tags, []), links: parseJSON(m.links, []), photo: fileUrl(m.photo_key),
-  available: !!m.available, status_note: m.status_note, is_admin: !!m.is_admin, sort: m.sort
+  available: !!m.available, status_note: m.status_note, is_admin: !!m.is_admin, sort: m.sort,
+  whatsapp: m.whatsapp || "", store: m.store || ""
 });
+const pubImg = g => ({ id: g.id, url: fileUrl(g.image_key), caption: g.caption, member_id: g.member_id, member: g.alias || "", slug: g.slug || "", created_at: g.created_at });
+const pubPost = p => ({ id: p.id, text: p.text, image: fileUrl(p.image_key), member: p.alias, slug: p.slug, member_id: p.member_id, created_at: p.created_at });
+
+/* ---------- ajustes (settings) ---------- */
+async function getSetting(env, key, fb = "") {
+  const r = await env.DB.prepare("SELECT value FROM settings WHERE key = ?").bind(key).first().catch(() => null);
+  return r ? r.value : fb;
+}
+async function setSetting(env, key, value) {
+  await env.DB.prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(key, value).run();
+}
+async function liveStatus(env) {
+  const l = parseJSON(await getSetting(env, "live", ""), null);
+  return l && l.on && l.until > Date.now() ? l : null;
+}
+async function siteExtras(env) {
+  const [live, featured, hero] = await Promise.all([liveStatus(env), getSetting(env, "featured_track", ""), getSetting(env, "hero_video", "")]);
+  return { live, featured_track: parseInt(featured) || 0, hero_video: fileUrl(hero) };
+}
 const pubTrack = t => ({ id: t.id, title: t.title, artists: t.artists, url: fileUrl(t.audio_key), duration: t.duration, member: t.alias, slug: t.slug, member_id: t.member_id });
 
 /* ---------- handlers ---------- */
@@ -107,7 +129,10 @@ async function publicData(env) {
   const tracks = (await env.DB.prepare(
     "SELECT t.*, m.alias, m.slug FROM tracks t JOIN members m ON m.id = t.member_id ORDER BY t.created_at DESC, t.id DESC LIMIT 200"
   ).all()).results.map(pubTrack);
-  return json({ members, dates, drops, tracks, today: today() });
+  const services = (await env.DB.prepare("SELECT s.*, m.alias, m.slug, m.whatsapp FROM services s JOIN members m ON m.id = s.member_id ORDER BY m.sort, m.id, s.id").all().catch(() => ({ results: [] }))).results;
+  const posts = (await env.DB.prepare("SELECT p.*, m.alias, m.slug FROM posts p JOIN members m ON m.id = p.member_id ORDER BY p.id DESC LIMIT 9").all().catch(() => ({ results: [] }))).results.map(pubPost);
+  const gallery = (await env.DB.prepare("SELECT g.*, m.alias, m.slug FROM gallery g LEFT JOIN members m ON m.id = g.member_id ORDER BY g.id DESC LIMIT 18").all().catch(() => ({ results: [] }))).results.map(pubImg);
+  return json({ members, dates, drops, tracks, services, posts, gallery, ...(await siteExtras(env)), today: today() });
 }
 
 async function memberPage(env, slug) {
@@ -117,7 +142,9 @@ async function memberPage(env, slug) {
   const drops = (await env.DB.prepare("SELECT * FROM drops WHERE member_id = ? ORDER BY day DESC, id DESC LIMIT 30").bind(m.id).all()).results;
   const tracks = (await env.DB.prepare("SELECT t.*, m.alias, m.slug FROM tracks t JOIN members m ON m.id = t.member_id WHERE t.member_id = ? ORDER BY t.created_at DESC").bind(m.id).all()).results.map(pubTrack);
   const order = (await env.DB.prepare("SELECT id FROM members ORDER BY sort, id").all()).results.map(r => r.id);
-  return json({ member: pubMember(m), channel: order.indexOf(m.id) + 1, total: order.length, dates, drops, tracks, today: today() });
+  const services = (await env.DB.prepare("SELECT * FROM services WHERE member_id = ? ORDER BY id").bind(m.id).all().catch(() => ({ results: [] }))).results;
+  const gallery = (await env.DB.prepare("SELECT * FROM gallery WHERE member_id = ? ORDER BY id DESC LIMIT 30").bind(m.id).all().catch(() => ({ results: [] }))).results.map(pubImg);
+  return json({ member: pubMember(m), channel: order.indexOf(m.id) + 1, total: order.length, dates, drops, tracks, services, gallery, today: today() });
 }
 
 async function serveFile(env, request, key) {
@@ -189,10 +216,11 @@ async function updateMe(env, me, request) {
     ? b.links.map(l => ({ nombre: str(l.nombre, 40), url: cleanUrl(l.url) })).filter(l => l.nombre && l.url).slice(0, 12)
     : parseJSON(me.links, []);
   await env.DB.prepare(
-    "UPDATE members SET alias=?, role=?, specialty=?, city=?, bio=?, tags=?, links=?, available=?, status_note=? WHERE id=?"
+    "UPDATE members SET alias=?, role=?, specialty=?, city=?, bio=?, tags=?, links=?, available=?, status_note=?, whatsapp=?, store=? WHERE id=?"
   ).bind(
     str(b.alias, 60) || me.alias, str(b.role, 120), str(b.specialty, 160), str(b.city, 80), str(b.bio, 2000),
-    JSON.stringify(tags), JSON.stringify(links), b.available === false ? 0 : 1, str(b.status_note, 160), me.id
+    JSON.stringify(tags), JSON.stringify(links), b.available === false ? 0 : 1, str(b.status_note, 160),
+    str(b.whatsapp, 20).replace(/\D/g, ""), cleanUrl(b.store), me.id
   ).run();
   const m = await env.DB.prepare("SELECT * FROM members WHERE id = ?").bind(me.id).first();
   return json({ ok: true, me: pubMember(m) });
@@ -221,6 +249,93 @@ async function uploadPhoto(env, me, request) {   // me = a quién se le pone la 
 async function deletePhoto(env, me) {
   if (me.photo_key) await env.MEDIA.delete(me.photo_key).catch(() => {});
   await env.DB.prepare("UPDATE members SET photo_key = '' WHERE id = ?").bind(me.id).run();
+  return json({ ok: true });
+}
+
+async function putImage(env, file, folder) {
+  if (!(file instanceof File)) return { error: "Falta la imagen" };
+  if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) return { error: "Usa JPG, PNG, WEBP o GIF" };
+  if (file.size > MAX_IMG) return { error: "La imagen pesa más de 6 MB" };
+  const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" }[file.type];
+  const key = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  await env.MEDIA.put(key, file, { httpMetadata: { contentType: file.type } });
+  return { key };
+}
+
+/* servicios */
+async function listServices(env, me) {
+  return json({ items: (await env.DB.prepare("SELECT * FROM services WHERE member_id = ? ORDER BY id").bind(me.id).all()).results });
+}
+async function addService(env, me, request) {
+  const b = await request.json().catch(() => ({}));
+  const name = str(b.name, 80);
+  if (!name) return fail("El servicio necesita un nombre");
+  await env.DB.prepare("INSERT INTO services (member_id, name, price, note) VALUES (?,?,?,?)").bind(me.id, name, str(b.price, 40), str(b.note, 200)).run();
+  return listServices(env, me);
+}
+
+/* bitácora */
+async function listPosts(env, me) {
+  const rows = (await env.DB.prepare("SELECT p.*, m.alias, m.slug FROM posts p JOIN members m ON m.id = p.member_id WHERE p.member_id = ? ORDER BY p.id DESC").bind(me.id).all()).results;
+  return json({ items: rows.map(pubPost) });
+}
+async function addPost(env, me, request) {
+  const form = await request.formData();
+  const text = str(form.get("text"), 600);
+  const file = form.get("file");
+  if (!text && !(file instanceof File && file.size)) return fail("Escribe algo o sube una foto");
+  let key = "";
+  if (file instanceof File && file.size) { const r = await putImage(env, file, "bitacora"); if (r.error) return fail(r.error); key = r.key; }
+  await env.DB.prepare("INSERT INTO posts (member_id, text, image_key) VALUES (?,?,?)").bind(me.id, text, key).run();
+  return listPosts(env, me);
+}
+
+/* galería */
+async function listGallery(env, memberId) {
+  const rows = (await env.DB.prepare("SELECT g.*, m.alias, m.slug FROM gallery g LEFT JOIN members m ON m.id = g.member_id WHERE g.member_id = ? ORDER BY g.id DESC").bind(memberId).all()).results;
+  return json({ items: rows.map(pubImg) });
+}
+async function addGallery(env, memberId, request) {
+  const form = await request.formData();
+  const r = await putImage(env, form.get("file"), memberId ? "galeria" : "galeria-colectivo");
+  if (r.error) return fail(r.error);
+  await env.DB.prepare("INSERT INTO gallery (member_id, image_key, caption) VALUES (?,?,?)").bind(memberId, r.key, str(form.get("caption"), 160)).run();
+  return listGallery(env, memberId);
+}
+
+/* en sesión y track de la semana */
+async function setLive(env, me, request) {
+  const b = await request.json().catch(() => ({}));
+  const live = b.on ? { on: true, text: str(b.text, 120) || "Estamos en sesión", url: cleanUrl(b.url), by: me.alias, until: Date.now() + LIVE_HOURS * 36e5 } : { on: false };
+  await setSetting(env, "live", JSON.stringify(live));
+  return json({ ok: true, live: live.on ? live : null });
+}
+async function setFeatured(env, request) {
+  const b = await request.json().catch(() => ({}));
+  const id = parseInt(b.track_id) || 0;
+  if (id && !(await env.DB.prepare("SELECT id FROM tracks WHERE id = ?").bind(id).first())) return fail("Ese track no existe", 404);
+  await setSetting(env, "featured_track", String(id));
+  return json({ ok: true, featured_track: id });
+}
+
+/* video del hero (admin) */
+async function setHeroVideo(env, request) {
+  const form = await request.formData();
+  const file = form.get("file");
+  if (!(file instanceof File)) return fail("Falta el video");
+  if (!/^video\/(mp4|webm|quicktime)$/.test(file.type)) return fail("Usa MP4 (H.264) o WEBM");
+  if (file.size > MAX_VIDEO) return fail("El video pesa más de 40 MB. Exporta un loop corto, 1080p, sin audio.");
+  const old = await getSetting(env, "hero_video", "");
+  const key = `sitio/hero-${Date.now()}.${file.type === "video/webm" ? "webm" : "mp4"}`;
+  await env.MEDIA.put(key, file, { httpMetadata: { contentType: file.type === "video/quicktime" ? "video/mp4" : file.type } });
+  if (old) await env.MEDIA.delete(old).catch(() => {});
+  await setSetting(env, "hero_video", key);
+  return json({ ok: true, hero_video: fileUrl(key) });
+}
+async function clearHeroVideo(env) {
+  const old = await getSetting(env, "hero_video", "");
+  if (old) await env.MEDIA.delete(old).catch(() => {});
+  await setSetting(env, "hero_video", "");
   return json({ ok: true });
 }
 
@@ -270,8 +385,13 @@ async function deleteOwn(env, me, table, id) {
   const row = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ? AND member_id = ?`).bind(id, me.id).first();
   if (!row) return fail("No encontrado", 404);
   if (table === "tracks") await env.MEDIA.delete(row.audio_key).catch(() => {});
+  if ((table === "posts" || table === "gallery") && row.image_key) await env.MEDIA.delete(row.image_key).catch(() => {});
   await env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
-  return table === "tracks" ? listTracks(env, me) : listOwn(env, table, me);
+  if (table === "tracks") return listTracks(env, me);
+  if (table === "services") return listServices(env, me);
+  if (table === "posts") return listPosts(env, me);
+  if (table === "gallery") return listGallery(env, me.id);
+  return listOwn(env, table, me);
 }
 
 /* ---------- admin ---------- */
@@ -310,11 +430,18 @@ async function adminDelete(env, me, id) {
   if (!m) return fail("No encontrado", 404);
   const tracks = (await env.DB.prepare("SELECT audio_key FROM tracks WHERE member_id = ?").bind(id).all()).results;
   for (const t of tracks) await env.MEDIA.delete(t.audio_key).catch(() => {});
+  for (const tb of ["posts", "gallery"]) {
+    const imgs = (await env.DB.prepare(`SELECT image_key FROM ${tb} WHERE member_id = ?`).bind(id).all().catch(() => ({ results: [] }))).results;
+    for (const r of imgs) if (r.image_key) await env.MEDIA.delete(r.image_key).catch(() => {});
+  }
   if (m.photo_key) await env.MEDIA.delete(m.photo_key).catch(() => {});
   await env.DB.batch([
     env.DB.prepare("DELETE FROM tracks WHERE member_id = ?").bind(id),
     env.DB.prepare("DELETE FROM dates WHERE member_id = ?").bind(id),
     env.DB.prepare("DELETE FROM drops WHERE member_id = ?").bind(id),
+    env.DB.prepare("DELETE FROM services WHERE member_id = ?").bind(id),
+    env.DB.prepare("DELETE FROM posts WHERE member_id = ?").bind(id),
+    env.DB.prepare("DELETE FROM gallery WHERE member_id = ?").bind(id),
     env.DB.prepare("DELETE FROM members WHERE id = ?").bind(id)
   ]);
   return adminMembers(env);
@@ -327,8 +454,16 @@ async function adminDeleteAny(env, table, id) {
     const t = await env.DB.prepare("SELECT audio_key FROM tracks WHERE id = ?").bind(id).first();
     if (t) await env.MEDIA.delete(t.audio_key).catch(() => {});
   }
+  if (table === "posts" || table === "gallery") {
+    const r = await env.DB.prepare(`SELECT image_key FROM ${table} WHERE id = ?`).bind(id).first();
+    if (r && r.image_key) await env.MEDIA.delete(r.image_key).catch(() => {});
+  }
   await env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
   return json({ ok: true });
+}
+async function adminPosts(env) {
+  const rows = (await env.DB.prepare("SELECT p.*, m.alias, m.slug FROM posts p JOIN members m ON m.id = p.member_id ORDER BY p.id DESC LIMIT 40").all()).results;
+  return json({ items: rows.map(pubPost) });
 }
 
 /* ---------- router ---------- */
@@ -367,7 +502,15 @@ export async function onRequest({ request, env, params }) {
     if (path === "/me/drops" && method === "POST") return addDrop(env, me, request);
     if (path === "/me/tracks" && method === "GET") return listTracks(env, me);
     if (path === "/me/tracks" && method === "POST") return addTrack(env, me, request);
-    if (method === "DELETE" && parts[0] === "me" && ["dates", "drops", "tracks"].includes(parts[1]) && id) return deleteOwn(env, me, parts[1], id);
+    if (path === "/me/services" && method === "GET") return listServices(env, me);
+    if (path === "/me/services" && method === "POST") return addService(env, me, request);
+    if (path === "/me/posts" && method === "GET") return listPosts(env, me);
+    if (path === "/me/posts" && method === "POST") return addPost(env, me, request);
+    if (path === "/me/gallery" && method === "GET") return listGallery(env, me.id);
+    if (path === "/me/gallery" && method === "POST") return addGallery(env, me.id, request);
+    if (path === "/me/live" && method === "PUT") return setLive(env, me, request);
+    if (path === "/me/featured" && method === "PUT") return setFeatured(env, request);
+    if (method === "DELETE" && parts[0] === "me" && ["dates", "drops", "tracks", "services", "posts", "gallery"].includes(parts[1]) && id) return deleteOwn(env, me, parts[1], id);
 
     // admin
     if (parts[0] === "admin") {
@@ -381,8 +524,13 @@ export async function onRequest({ request, env, params }) {
       if (parts[1] === "members" && id && method === "PUT") return adminUpdate(env, me, request, id);
       if (parts[1] === "members" && id && method === "DELETE") return adminDelete(env, me, id);
       if (path === "/admin/joins" && method === "GET") return adminJoins(env);
+      if (path === "/admin/posts" && method === "GET") return adminPosts(env);
+      if (path === "/admin/gallery" && method === "GET") return listGallery(env, 0);
+      if (path === "/admin/gallery" && method === "POST") return addGallery(env, 0, request);
+      if (path === "/admin/hero" && method === "POST") return setHeroVideo(env, request);
+      if (path === "/admin/hero" && method === "DELETE") return clearHeroVideo(env);
       if (parts[1] === "joins" && id && method === "DELETE") return adminDeleteAny(env, "join_requests", id);
-      if (["dates", "drops", "tracks"].includes(parts[1]) && id && method === "DELETE") return adminDeleteAny(env, parts[1], id);
+      if (["dates", "drops", "tracks", "services", "posts", "gallery"].includes(parts[1]) && id && method === "DELETE") return adminDeleteAny(env, parts[1], id);
     }
     return fail("Ruta no encontrada", 404);
   } catch (e) {

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Modo escenario</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%2339FF14'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/estilo.css">
+<script src="/site.js"></script>
+<style>
+html,body{height:100%;background:#000;color:#EDF3E8;overflow:hidden;cursor:none}
+body.mostrar{cursor:default}
+.player{display:none!important}
+#lienzo{position:fixed;inset:0;width:100%;height:100%}
+.capa{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(1rem,3vw,2.5rem);pointer-events:none}
+.arriba{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.marca{font-family:var(--display);font-size:clamp(1.2rem,2.5vw,2rem);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:.6rem}
+.marca i{width:.7rem;height:.7rem;border-radius:50%;background:var(--verde);box-shadow:0 0 12px var(--verde);animation:blink var(--beat) steps(1) infinite}
+.vivo{font-weight:700;color:var(--rec);letter-spacing:.06em;text-transform:uppercase;font-size:clamp(.8rem,1.5vw,1.1rem);display:none;align-items:center;gap:.5rem}
+.vivo::before{content:"";width:.6rem;height:.6rem;border-radius:50%;background:var(--rec);box-shadow:0 0 10px var(--rec);animation:blink var(--beat) steps(1) infinite}
+.vivo.on{display:inline-flex}
+.nombre{font-family:var(--display);font-size:clamp(4rem,22vw,30rem);line-height:.82;text-transform:uppercase;letter-spacing:-.01em;mix-blend-mode:difference;color:#fff}
+.abajo{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem}
+.ahora{font-family:var(--display);font-size:clamp(1.4rem,4vw,3.4rem);line-height:1;text-transform:uppercase}
+.ahora small{display:block;font-family:var(--texto);font-size:clamp(.8rem,1.4vw,1.1rem);color:var(--gris);text-transform:none;margin-top:.4rem}
+.ayuda{font-size:.8rem;color:var(--gris);text-align:right;white-space:nowrap;opacity:0;transition:opacity .3s}
+body.mostrar .ayuda{opacity:1}
+.ayuda kbd{border:1px solid var(--linea);padding:0 .3rem;font-family:inherit}
+.inicio{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.85);z-index:5;cursor:pointer}
+.inicio div{text-align:center}
+.inicio b{display:block;font-family:var(--display);font-size:clamp(3rem,10vw,7rem);text-transform:uppercase;line-height:.9}
+.inicio p{color:var(--gris);margin-top:1rem}
+.inicio.oculto{display:none}
+</style>
+</head>
+<body>
+<canvas id="lienzo"></canvas>
+<div class="capa">
+  <div class="arriba"><div class="marca"><i></i><span data-nombre></span></div><span class="vivo" id="vivo"></span></div>
+  <div class="nombre" data-nombre></div>
+  <div class="abajo"><div class="ahora"><span id="ahora-t">Radio</span><small id="ahora-a"></small></div>
+  <div class="ayuda"><kbd>espacio</kbd> pausa · <kbd>N</kbd> siguiente · <kbd>V</kbd> visual · <kbd>F</kbd> pantalla completa · <kbd>Esc</kbd> salir</div></div>
+</div>
+<div class="inicio" id="inicio"><div><b>Modo escenario</b><p>Toca para arrancar la radio en aleatorio.<br>Proyéctalo detrás del DJ o en la fiesta.</p></div></div>
+
+<script src="/radio.js"></script>
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+document.querySelectorAll("[data-nombre]").forEach(el => el.textContent = SITE.nombre);
+document.documentElement.style.setProperty("--beat", (60 / SITE.bpm) + "s");
+document.title = `${SITE.nombre} · modo escenario`;
+const c = $("#lienzo"), ctx = c.getContext("2d");
+let W = 0, H = 0, modo = 0, t = 0, buf, freq;
+const green = "#39FF14";
+const resize = () => { const dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; c.width = W * dpr; c.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+addEventListener("resize", resize); resize();
+
+function onda() {
+  const an = Radio.analyser;
+  ctx.lineWidth = 3; ctx.strokeStyle = green; ctx.shadowColor = green; ctx.shadowBlur = 18; ctx.beginPath();
+  if (an && Radio.playing) {
+    if (!buf || buf.length !== an.fftSize) buf = new Uint8Array(an.fftSize);
+    an.getByteTimeDomainData(buf);
+    const step = buf.length / W;
+    for (let x = 0; x <= W; x += 2) { const v = (buf[Math.min(buf.length - 1, Math.floor(x * step))] - 128) / 128; const y = H / 2 + v * H * .42; x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+  } else {
+    for (let x = 0; x <= W; x += 3) { const y = H / 2 + Math.sin(x * .006 + t) * H * .12 + Math.sin(x * .017 - t * 1.3) * H * .05; x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+  }
+  ctx.stroke(); ctx.shadowBlur = 0;
+}
+function barras() {
+  const an = Radio.analyser; if (!an) return onda();
+  if (!freq || freq.length !== an.frequencyBinCount) freq = new Uint8Array(an.frequencyBinCount);
+  an.getByteFrequencyData(freq);
+  const n = 48, w = W / n; ctx.fillStyle = green; ctx.shadowColor = green; ctx.shadowBlur = 10;
+  for (let i = 0; i < n; i++) {
+    const idx = Math.floor(Math.pow(i / n, 1.6) * freq.length * .6);
+    const v = freq[idx] / 255, h = v * H * .9;
+    ctx.fillRect(i * w + w * .15, H - h, w * .7, h);
+  }
+  ctx.shadowBlur = 0;
+}
+function anillo() {
+  const an = Radio.analyser; if (!an) return onda();
+  if (!buf || buf.length !== an.fftSize) buf = new Uint8Array(an.fftSize);
+  an.getByteTimeDomainData(buf);
+  const cx = W / 2, cy = H / 2, r = Math.min(W, H) * .28, n = 360;
+  ctx.lineWidth = 3; ctx.strokeStyle = green; ctx.shadowColor = green; ctx.shadowBlur = 18; ctx.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const a = i / n * Math.PI * 2 + t * .2, v = (buf[Math.floor(i / n * (buf.length - 1))] - 128) / 128;
+    const rr = r + v * r * .9; const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.closePath(); ctx.stroke(); ctx.shadowBlur = 0;
+}
+const modos = [onda, barras, anillo];
+function loop() {
+  ctx.fillStyle = "rgba(0,0,0,.28)"; ctx.fillRect(0, 0, W, H);
+  modos[modo](); t += .03 * (SITE.bpm / 120);
+  requestAnimationFrame(loop);
+}
+loop();
+
+let TRACKS = [];
+async function cargar() {
+  try {
+    const d = await fetch("/api/public").then(r => r.json());
+    TRACKS = d.tracks || [];
+    const v = $("#vivo"); if (d.live) { v.textContent = d.live.text; v.classList.add("on"); }
+    Radio.init({ tracks: TRACKS, listEl: null, name: SITE.radio });
+    if (!TRACKS.length) { $("#inicio p").textContent = "No hay música en la radio todavía; el visual igual se mueve."; }
+  } catch (e) { $("#inicio p").textContent = "No se pudo cargar la radio."; }
+}
+function ahora() {
+  const a = Radio.audio; if (!a) return;
+  const i = TRACKS.findIndex(x => a.src.endsWith(x.url)); const tr = TRACKS[i];
+  $("#ahora-t").textContent = tr ? tr.title : SITE.radio; $("#ahora-a").textContent = tr ? (tr.artists || tr.member) : "";
+}
+$("#inicio").addEventListener("click", () => {
+  $("#inicio").classList.add("oculto");
+  if (TRACKS.length) { const q = $("#player .shuf"); if (q) q.click(); Radio.play(Math.floor(Math.random() * TRACKS.length)); }
+  setInterval(ahora, 800);
+});
+let timer;
+const mostrar = () => { document.body.classList.add("mostrar"); clearTimeout(timer); timer = setTimeout(() => document.body.classList.remove("mostrar"), 2500); };
+addEventListener("pointermove", mostrar); addEventListener("pointerdown", mostrar);
+document.addEventListener("keydown", e => {
+  if (e.key === "v" || e.key === "V") modo = (modo + 1) % modos.length;
+  if (e.key === "n" || e.key === "N") Radio.next();
+  if (e.key === "f" || e.key === "F") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {});
+  if (e.key === "Escape" && !document.fullscreenElement) location.href = "/";
+  mostrar();
+});
+c.addEventListener("dblclick", () => { modo = (modo + 1) % modos.length; });
+cargar();
+</script>
+</body>
+</html>

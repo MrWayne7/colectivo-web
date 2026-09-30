@@ -73,7 +73,7 @@ window.Radio = (() => {
       listEl.innerHTML = tracks.length ? tracks.map((t, i) => `
         <button class="song" data-i="${i}">
           <span class="song__p" aria-hidden="true">&#9654;</span>
-          <span class="song__t">${esc(t.title)}<span class="song__a">${esc(t.artists || t.member || "")}${t.member && t.artists && t.artists !== t.member ? " · subido por " + esc(t.member) : ""}</span></span>
+          <span class="song__t">${esc(t.title)}${t.featured ? '<span class="track__tag">de la semana</span>' : ""}<span class="song__a">${esc(t.artists || t.member || "")}${t.member && t.artists && t.artists !== t.member ? " · subido por " + esc(t.member) : ""}</span></span>
           <span class="song__d">${t.duration ? fmt(t.duration) : ""}</span>
         </button>`).join("") : `<p class="empty">La radio está en silencio. Cuando alguien suba música desde su <a href="/panel">panel</a>, suena aquí.</p>`;
       listEl.addEventListener("click", e => {

@@ -33,6 +33,23 @@
 .nada{padding:4rem 1.25rem;text-align:center;color:var(--gris)}
 .embeds{display:grid;grid-template-columns:repeat(auto-fill,minmax(18rem,1fr));gap:1rem}
 .embeds iframe{width:100%;height:152px;border:0;border-radius:12px;background:var(--musgo)}
+.servicios{display:flex;flex-direction:column;border-top:1px solid var(--linea)}
+.servicio{display:grid;grid-template-columns:1fr auto auto;gap:1rem;align-items:center;padding:1rem .25rem;border-bottom:1px solid var(--linea)}
+.servicio__n{font-family:var(--display);font-size:clamp(1.4rem,3.4vw,2.4rem);line-height:1;text-transform:uppercase}
+.servicio__q{display:block;font-family:var(--texto);font-size:.9rem;color:var(--gris);text-transform:none;margin-top:.3rem}
+.servicio__p{white-space:nowrap;color:var(--gris)}
+.servicio__p b{display:block;color:var(--tinta)}
+@media (max-width:640px){.servicio{grid-template-columns:1fr auto}.servicio__p{grid-column:1}}
+.galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.6rem}
+.galeria button{border:0;padding:0;background:var(--musgo);cursor:zoom-in;aspect-ratio:1;overflow:hidden}
+.galeria img{width:100%;height:100%;object-fit:cover;display:block}
+.lightbox{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:1rem;gap:.75rem}
+.lightbox.open{display:flex}
+.lightbox img{max-width:100%;max-height:82vh;object-fit:contain}
+.lightbox p{color:#fff;font-size:.9rem}
+.lightbox__close{position:absolute;top:1rem;right:1rem;background:none;border:2px solid var(--verde);color:var(--verde);width:2.6rem;height:2.6rem;font-size:1.4rem;cursor:pointer}
+.embeds--alto iframe{height:166px}
+.date__cal{font-size:.85rem;color:var(--acento);text-decoration:none;font-weight:600;white-space:nowrap}
 .videos{display:grid;grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));gap:1rem}
 .video{position:relative;display:block;aspect-ratio:16/9;border:2px solid var(--verde);background:var(--musgo) center/cover no-repeat;text-decoration:none}
 .video span{position:absolute;left:0;right:0;bottom:0;padding:.5rem .7rem;background:linear-gradient(transparent,rgba(0,0,0,.85));color:#fff;font-family:var(--display);text-transform:uppercase;font-size:1.1rem;line-height:1.1}
@@ -65,6 +82,7 @@
 </nav>
 
 <main id="main"><p class="nada">Cargando canal…</p></main>
+<div class="lightbox" id="lightbox" role="dialog" aria-label="Foto"><button class="lightbox__close" id="lightbox-close" aria-label="Cerrar">×</button><img alt=""><p></p></div>
 
 <footer class="foot">
   <span data-copy></span>
@@ -84,7 +102,7 @@ const fecha = d => { const [y, m, dd] = String(d || "").split("-"); return m ? {
 
 document.documentElement.style.setProperty("--beat", (60 / SITE.bpm) + "s");
 $$("[data-nombre]").forEach(el => el.textContent = SITE.nombre);
-$(".rec").classList.toggle("off", !SITE.enSesion);
+$(".rec").classList.add("off");
 $("#foot-social").innerHTML = SITE.redes.map(r => `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.nombre)}</a>`).join("");
 $("[data-copy]").textContent = `© ${new Date().getFullYear()} ${SITE.nombre}`;
 
@@ -93,6 +111,18 @@ const setMenu = open => { menu.classList.toggle("open", open); document.body.cla
 menuBtn.addEventListener("click", () => setMenu(true));
 $("#menu-close").addEventListener("click", () => setMenu(false));
 menu.addEventListener("click", e => { if (e.target.closest("a")) setMenu(false); });
+
+const lb = $("#lightbox");
+document.addEventListener("click", e => { const z = e.target.closest("[data-zoom]"); if (!z) return; $("img", lb).src = z.dataset.zoom; $("p", lb).textContent = z.dataset.cap || ""; lb.classList.add("open"); });
+const cerrarLb = () => lb.classList.remove("open");
+$("#lightbox-close").addEventListener("click", cerrarLb); lb.addEventListener("click", e => { if (e.target === lb) cerrarLb(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") cerrarLb(); });
+const icsDe = (d, quien) => {
+  const dt = String(d.day).replace(/-/g, ""), esc2 = s => String(s || "").replace(/[,;]/g, m => "\\" + m);
+  const lineas = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//colectivo//ES", "BEGIN:VEVENT", `UID:fecha-${d.id}@${location.host}`, `DTSTART;VALUE=DATE:${dt}`,
+    `SUMMARY:${esc2((d.title || d.place || "Fecha") + (quien ? " · " + quien : ""))}`, `LOCATION:${esc2([d.place, d.city].filter(Boolean).join(", "))}`, `DESCRIPTION:${esc2([d.note, d.url].filter(Boolean).join(" "))}`, "END:VEVENT", "END:VCALENDAR"];
+  return "data:text/calendar;charset=utf-8," + encodeURIComponent(lineas.join("\r\n"));
+};
 
 const slug = (location.pathname.match(/^\/m\/([^/]+)/) || [])[1] || new URLSearchParams(location.search).get("u") || "";
 
@@ -109,6 +139,16 @@ async function cargar() {
   const spotis = data.drops.filter(d => spId(d.url));
   const spotiHtml = spotis.length ? `<section class="sec"><h2 class="sub">Escucha</h2><div class="embeds">${spotis.map(d =>
     `<iframe loading="lazy" title="${esc(d.title)}" src="https://open.spotify.com/embed/${spId(d.url)}?theme=0" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>`).join("")}</div></section>` : "";
+  const sets = data.drops.filter(d => /soundcloud\.com\/|mixcloud\.com\//.test(d.url || ""));
+  const setSrc = u => /mixcloud\.com/.test(u)
+    ? `https://www.mixcloud.com/widget/iframe/?hide_cover=1&feed=${encodeURIComponent(new URL(u).pathname)}`
+    : `https://w.soundcloud.com/player/?url=${encodeURIComponent(u)}&color=%2339ff14&auto_play=false&show_comments=false&visual=false`;
+  const setsHtml = sets.length ? `<section class="sec"><h2 class="sub">Sets y mixes</h2><div class="embeds embeds--alto">${sets.map(d =>
+    `<iframe loading="lazy" title="${esc(d.title)}" src="${setSrc(d.url)}" allow="autoplay"></iframe>`).join("")}</div></section>` : "";
+  const servHtml = data.services && data.services.length ? `<section class="sec"><h2 class="sub">Servicios</h2><div class="servicios">${data.services.map(x =>
+    `<div class="servicio"><div class="servicio__n">${esc(x.name)}${x.note ? `<span class="servicio__q">${esc(x.note)}</span>` : ""}</div><div class="servicio__p">${x.price ? `desde<b>${esc(x.price)}</b>` : ""}</div>${num ? `<a class="btn btn--peq btn--fill" href="${wa("Hola " + m.alias + ", vi tu canal en " + SITE.nombre + " y me interesa: " + x.name)}" target="_blank" rel="noopener">WhatsApp</a>` : ""}</div>`).join("")}</div></section>` : "";
+  const galHtml = data.gallery && data.gallery.length ? `<section class="sec"><h2 class="sub">Galería</h2><div class="galeria">${data.gallery.map(g =>
+    `<button type="button" data-zoom="${esc(g.url)}" data-cap="${esc(g.caption)}"><img src="${esc(g.url)}" alt="${esc(g.caption)}" loading="lazy"></button>`).join("")}</div></section>` : "";
   const videos = data.drops.filter(d => ytId(d.url));
   const videosHtml = videos.length ? `<section class="sec"><h2 class="sub">Videos</h2><div class="videos">${videos.map(d =>
     `<a class="video" href="${esc(d.url)}" target="_blank" rel="noopener" style="background-image:url('https://i.ytimg.com/vi/${ytId(d.url)}/hqdefault.jpg')"><span>${esc(d.title)}</span></a>`).join("")}</div></section>` : "";
@@ -119,14 +159,18 @@ async function cargar() {
   const m = data.member, today = data.today;
   document.title = `${m.alias} · ${SITE.nombre}`;
   const links = (m.links || []).map(l => `<a class="btn btn--peq" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.nombre)}</a>`).join("");
-  const booking = SITE.whatsapp ? `<a class="btn btn--peq btn--fill" href="https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent("Hola, quiero contactar a " + m.alias)}" target="_blank" rel="noopener">Contactar</a>` : "";
+  const num = m.whatsapp || SITE.whatsapp;
+  const wa = txt => `https://wa.me/${num}?text=${encodeURIComponent(txt)}`;
+  const booking = num ? `<a class="btn btn--peq btn--fill" href="${wa("Hola " + m.alias + ", vi tu canal en " + SITE.nombre + " y quiero contactarte")}" target="_blank" rel="noopener">WhatsApp</a>` : "";
+  const tienda = m.store ? `<a class="btn btn--peq" href="${esc(m.store)}" target="_blank" rel="noopener">Tienda</a>` : "";
+  const kit = `<a class="btn btn--peq btn--gris" href="/kit/${esc(m.slug)}" target="_blank" rel="noopener">Press kit</a>`;
 
   const fechas = data.dates.length ? `<div class="dates">${data.dates.map(d => {
     const f = fecha(d.day), donde = [d.place, d.city].filter(Boolean).join(", ") || d.title;
     const nota = [d.title && d.title !== donde ? d.title : "", d.note].filter(Boolean).join(" · ");
     return `<div class="date"><div class="date__when"><span class="date__day">${f.dia}</span><span class="date__mon">${f.mes}</span></div>
       <div class="date__where">${esc(donde)}${nota ? `<span class="date__note">${esc(nota)}</span>` : ""}</div>
-      ${d.url ? `<a class="date__link" href="${esc(d.url)}" target="_blank" rel="noopener">Info</a>` : ""}</div>`;
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">${d.url ? `<a class="date__link" href="${esc(d.url)}" target="_blank" rel="noopener">Info</a>` : ""}<a class="date__cal" href="${icsDe(d, m.alias)}" download="fecha-${d.id}.ics">+ Calendario</a></div></div>`;
   }).join("")}</div>` : `<p class="empty">Sin fechas próximas.</p>`;
 
   const drops = data.drops.length ? `<div class="tracks">${data.drops.map((d, i) => {
@@ -142,6 +186,16 @@ async function cargar() {
   const spotis = data.drops.filter(d => spId(d.url));
   const spotiHtml = spotis.length ? `<section class="sec"><h2 class="sub">Escucha</h2><div class="embeds">${spotis.map(d =>
     `<iframe loading="lazy" title="${esc(d.title)}" src="https://open.spotify.com/embed/${spId(d.url)}?theme=0" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>`).join("")}</div></section>` : "";
+  const sets = data.drops.filter(d => /soundcloud\.com\/|mixcloud\.com\//.test(d.url || ""));
+  const setSrc = u => /mixcloud\.com/.test(u)
+    ? `https://www.mixcloud.com/widget/iframe/?hide_cover=1&feed=${encodeURIComponent(new URL(u).pathname)}`
+    : `https://w.soundcloud.com/player/?url=${encodeURIComponent(u)}&color=%2339ff14&auto_play=false&show_comments=false&visual=false`;
+  const setsHtml = sets.length ? `<section class="sec"><h2 class="sub">Sets y mixes</h2><div class="embeds embeds--alto">${sets.map(d =>
+    `<iframe loading="lazy" title="${esc(d.title)}" src="${setSrc(d.url)}" allow="autoplay"></iframe>`).join("")}</div></section>` : "";
+  const servHtml = data.services && data.services.length ? `<section class="sec"><h2 class="sub">Servicios</h2><div class="servicios">${data.services.map(x =>
+    `<div class="servicio"><div class="servicio__n">${esc(x.name)}${x.note ? `<span class="servicio__q">${esc(x.note)}</span>` : ""}</div><div class="servicio__p">${x.price ? `desde<b>${esc(x.price)}</b>` : ""}</div>${num ? `<a class="btn btn--peq btn--fill" href="${wa("Hola " + m.alias + ", vi tu canal en " + SITE.nombre + " y me interesa: " + x.name)}" target="_blank" rel="noopener">WhatsApp</a>` : ""}</div>`).join("")}</div></section>` : "";
+  const galHtml = data.gallery && data.gallery.length ? `<section class="sec"><h2 class="sub">Galería</h2><div class="galeria">${data.gallery.map(g =>
+    `<button type="button" data-zoom="${esc(g.url)}" data-cap="${esc(g.caption)}"><img src="${esc(g.url)}" alt="${esc(g.caption)}" loading="lazy"></button>`).join("")}</div></section>` : "";
   const videos = data.drops.filter(d => ytId(d.url));
   const videosHtml = videos.length ? `<section class="sec"><h2 class="sub">Videos</h2><div class="videos">${videos.map(d =>
     `<a class="video" href="${esc(d.url)}" target="_blank" rel="noopener" style="background-image:url('https://i.ytimg.com/vi/${ytId(d.url)}/hqdefault.jpg')"><span>${esc(d.title)}</span></a>`).join("")}</div></section>` : "";
@@ -157,15 +211,18 @@ async function cargar() {
       <p class="estado ${m.available ? "" : "no"}">${m.available ? "Disponible para trabajos" : "No disponible por ahora"}${m.status_note ? " — " + esc(m.status_note) : ""}</p>
       ${m.bio ? `<p class="ficha__bio">${esc(m.bio).replace(/\n/g, "<br>")}</p>` : ""}
       ${m.tags && m.tags.length ? `<div class="tags">${m.tags.map(t => `<span>${esc(t)}</span>`).join("")}</div>` : ""}
-      <div class="ficha__links">${links}${booking}</div>
+      <div class="ficha__links">${links}${tienda}${booking}${kit}</div>
     </div>
   </section>
   <section class="sec">
     <h2 class="sub">Su música</h2>
     <div class="radio-list" id="radio-list"></div>
   </section>
+  ${servHtml}
   ${spotiHtml}
+  ${setsHtml}
   ${videosHtml}
+  ${galHtml}
   <section class="sec">
     <div class="dos">
       <div><h2 class="sub">Próximas fechas</h2>${fechas}</div>
