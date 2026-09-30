@@ -1,7 +1,9 @@
 /* Configuración del sitio. Lo que no depende de cada integrante vive aquí. */
 window.SITE = {
   nombre: "COLECTIVO",              // nombre del colectivo (placeholder, cámbialo)
-  tema: "light",                    // "light" (fondo claro) o "dark" (fondo negro)
+  tema: "auto",                     // "auto" sigue el modo del celular; "light" o "dark" lo fuerzan (el visitante puede cambiarlo con el botón)
+  url: "https://colectivo-web.pages.dev",   // dirección pública (cámbiala si consiguen dominio)
+  comunidad: "",                    // link del grupo de WhatsApp o Telegram (opcional, aparece en Únete)
   tagline: "Músicos, productores, directores y artistas haciendo cosas juntos desde Bogotá.",
   radio: "Radio Colectivo",         // nombre de la estación
   enSesion: true,                   // true = punto rojo parpadeando en la barra

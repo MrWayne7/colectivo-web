@@ -11,7 +11,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/estilo.css">
 <script src="/site.js"></script>
-<script>document.documentElement.dataset.theme = (window.SITE && SITE.tema) || "light";</script>
+<script src="/tema.js"></script>
+<meta name="theme-color" content="#F1F4EA">
 <style>
 main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
 .vista{display:flex;flex-direction:column;gap:1.5rem}
@@ -53,7 +54,7 @@ main{max-width:64rem;margin:0 auto;padding:2rem 1.25rem 5rem}
 
 <header class="bar">
   <a class="bar__id" href="/"><span class="rec off" aria-hidden="true"></span><span data-nombre></span><span class="bar__live" style="color:var(--gris)">PANEL</span></a>
-  <nav class="bar__nav"><a href="/" target="_blank" rel="noopener">Ver sitio</a><a href="#" id="salir" class="oculto">Salir</a></nav>
+  <div class="bar__der"><nav class="bar__nav" style="display:flex"><a href="/" target="_blank" rel="noopener">Ver sitio</a><a href="#" id="salir" class="oculto">Salir</a></nav><button class="bar__tema" data-tema-btn type="button"></button></div>
 </header>
 
 <main>
